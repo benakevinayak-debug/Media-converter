@@ -88,7 +88,7 @@ $("fmts").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;fmt=b.da
 $("quals").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;qual=b.dataset.q;document.querySelectorAll("#quals .chip").forEach(c=>c.classList.toggle("on",c===b))};
 
 // ---- ffmpeg arguments
-const Q={low:{crf:30,abr:"96k",vp9:40},medium:{crf:25,abr:"160k",vp9:33},high:{crf:20,abr:"256k",vp9:28}};
+const Q={low:{crf:"30",abr:"96k",vp9:"40"},medium:{crf:"25",abr:"160k",vp9:"33"},high:{crf:"20",abr:"256k",vp9:"28"}};
 const MAPS=["-map","0:v:0?","-map","0:a:0?","-sn","-dn"];          // keep only first video + audio (drops iPhone data tracks)
 const EVEN="scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p";    // even size + 8-bit 4:2:0 for compatibility
 const x264=q=>["-c:v","libx264","-preset","ultrafast","-crf",Q[q].crf,"-vf",EVEN];
@@ -151,7 +151,7 @@ async function probe(inName){logBuf.length=0;await ffmpeg.exec(["-hide_banner","
 const tail=()=>{const l=logBuf.filter(x=>x.trim()).slice(-2).join(" | ");return l?l.slice(0,160):"unsupported or corrupt file"};
 
 async function run(inName,outName,a){logBuf.length=0;let code;
- try{code=await ffmpeg.exec(["-y","-i",inName,...a,outName])}catch(e){code=1}
+ try{code=await ffmpeg.exec(["-y","-i",inName,...a,outName].map(String))}catch(e){code=1}
  if(code!==0)return null;
  try{const d=await ffmpeg.readFile(outName);return d.length>2048?d:null}catch(e){return null}}
 
