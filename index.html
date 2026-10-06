@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="author" content="Vinayak Benake">
+<meta name="theme-color" content="#6d5efc">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MediaConvert by Vinayak Benake</title>
 <style>
@@ -44,7 +48,7 @@ button.sec{padding:13px 18px;border-radius:12px;border:1px solid var(--bd);backg
 .bar{height:5px;background:var(--bd);border-radius:3px;margin-top:7px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .2s}
 .st{font-size:13px;color:var(--mu);text-align:right;max-width:210px}
-.st.er{color:var(--er)}
+.st.er{color:var(--er)}.st.ok{color:var(--ok);font-weight:600}
 a.dl{display:inline-block;background:var(--ok);color:#fff;text-decoration:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13.5px}
 footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
 </style>
@@ -52,6 +56,7 @@ footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
 <body>
 <div class="wrap">
 <h1>MediaConvert</h1>
+<button class="sec" id="install" hidden style="margin:10px 0 0;padding:8px 14px">⬇ Install as app</button>
 <p class="sub">Convert video and audio in your browser. Private: files never leave your device.</p>
 
 <div class="card">
@@ -65,7 +70,7 @@ footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
  <p class="lbl">Quality</p>
  <div class="seg" id="quals"><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip on" data-q="high">High</button></div>
  <label class="opt"><input type="checkbox" id="fast" checked> Smart fast mode: skip re-encoding when the video is already compatible</label>
- <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
+ <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="folder" title="Pick a folder: results are saved back into it automatically">📁 Open folder</button><button class="sec" id="clear">Clear</button></div>
  <p id="msg">The conversion engine (about 30 MB) downloads on first use, then it is cached.</p>
  <pre id="log"></pre>
 </div>
@@ -122,6 +127,12 @@ $("pick").onchange=e=>{add(e.target.files);e.target.value=""};
 ["dragover","dragenter"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.add("over")}));
 ["dragleave","drop"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.remove("over")}));
 $("drop").addEventListener("drop",e=>add(e.dataTransfer.files));
+$("folder").onclick=async()=>{
+ if(!window.showDirectoryPicker){alert("Saving into the source folder needs Chrome or Edge on a desktop computer.");return}
+ try{const dir=await showDirectoryPicker({mode:"readwrite"});
+  const ok=/\.(mp4|m4v|mov|mkv|avi|wmv|flv|ts|m2ts|3gp|webm|mpg|mpeg|mp3|wav|flac|aac|m4a|ogg|opus|wma|aiff)$/i;
+  let n=0;for await(const[name,h]of dir.entries()){if(h.kind==="file"&&ok.test(name)){files.push({file:await h.getFile(),dir});n++}}
+  $("msg").textContent=n?n+" file(s) added. Results will be saved into this same folder.":"No media files found in that folder.";render()}catch(e){}};
 $("clear").onclick=()=>{if(!busy){files=[];render()}};
 
 // ---- engine
@@ -178,12 +189,24 @@ $("go").onclick=async()=>{
    if(!data){setSt(f,"Converting…");setBar(f,0);data=await run(inName,outName,args(ext,q))}
    if(!data)throw new Error(tail());
    const url=URL.createObjectURL(new Blob([data.buffer])),base=f.file.name.replace(/\.[^.]+$/,"");
-   setBar(f,1);f.done=true;f.html=`<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext.toUpperCase()}</a>`;
-   f.el.querySelector(".st").innerHTML=f.html;f.el.querySelector(".meta").textContent=fmtSize(f.file.size)+" → "+fmtSize(data.length);
+   setBar(f,1);f.done=true;let saved=null;
+   if(f.dir){try{const has=async n=>{try{await f.dir.getFileHandle(n);return true}catch(e){return false}};
+    let name=base+"."+ext,k=1;while(await has(name))name=base+" (converted"+(k>1?" "+k:"")+")."+ext,k++;
+    const w=await(await f.dir.getFileHandle(name,{create:true})).createWritable();await w.write(data);await w.close();saved=name}catch(e){}}
+   if(saved){f.html=null;setSt(f,"Saved in folder: "+saved,"ok")}
+   else{f.html=`<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext.toUpperCase()}</a>`;f.el.querySelector(".st").innerHTML=f.html}
+   f.el.querySelector(".meta").textContent=fmtSize(f.file.size)+" → "+fmtSize(data.length);
   }catch(e){setSt(f,"Failed: "+e.message,"er");$("log").style.display="block"}
   finally{ffmpeg.off("progress",onP);await ffmpeg.deleteFile(inName).catch(()=>{});await ffmpeg.deleteFile(outName).catch(()=>{})}}
- busy=false;$("go").disabled=false;$("msg").textContent="Finished. Use the green Download buttons.";
+ busy=false;$("go").disabled=false;$("msg").textContent="Finished. Saved files are in your folder; otherwise use the green Download buttons.";
 };
+
+// ---- installable app (PWA)
+let deferred=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;$("install").hidden=false});
+$("install").onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$("install").hidden=true};
+window.addEventListener("appinstalled",()=>{$("install").hidden=true});
+if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
