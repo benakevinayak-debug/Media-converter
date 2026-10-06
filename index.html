@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediaConvert</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --tx:#1b1f24; --mu:#6b7280; --ac:#2563eb; --bd:#d9dde3; --ok:#16a34a; --er:#dc2626; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14161a; --card:#1d2026; --tx:#e8eaed; --mu:#9aa0a8; --bd:#33373f; }
+  }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--tx); font:15px/1.5 system-ui,sans-serif; padding:24px }
+  .wrap { max-width:680px; margin:0 auto }
+  h1 { font-size:22px; margin:0 0 4px }
+  p.sub { color:var(--mu); margin:0 0 18px }
+  .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:14px }
+  #drop { border:2px dashed var(--bd); border-radius:12px; padding:32px; text-align:center; cursor:pointer; color:var(--mu) }
+  #drop.over { border-color:var(--ac); color:var(--ac) }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center }
+  label { color:var(--mu); font-size:13px }
+  select, button { font:inherit; padding:8px 12px; border-radius:8px; border:1px solid var(--bd); background:var(--card); color:var(--tx) }
+  button.primary { background:var(--ac); color:#fff; border-color:var(--ac); cursor:pointer }
+  button:disabled { opacity:.5; cursor:not-allowed }
+  .file { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--bd) }
+  .file:first-child { border-top:0 }
+  .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 }
+  .st { font-size:13px; color:var(--mu); white-space:nowrap }
+  .st.ok { color:var(--ok) } .st.er { color:var(--er) }
+  .bar { height:4px; background:var(--bd); border-radius:2px; margin-top:6px; overflow:hidden }
+  .bar > i { display:block; height:100%; width:0; background:var(--ac) }
+  a.dl { color:var(--ac); text-decoration:none; font-weight:600 }
+  #msg { color:var(--mu); font-size:13px }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MediaConvert</h1>
+  <p class="sub">Convert video and audio between formats, right in your browser. Files never leave your computer.</p>
+
+  <div class="card">
+    <div id="drop">Drop files here or click to choose<br><small>MOV, MKV, AVI, MP4, WebM, MP3, WAV, FLAC, M4A, OGG and more</small></div>
+    <input id="pick" type="file" multiple accept="video/*,audio/*,.mkv,.mov,.avi,.wmv,.flv,.ts,.3gp,.m4a,.flac,.opus,.ogg,.wma,.aiff" hidden>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label>Convert to</label>
+      <select id="fmt">
+        <optgroup label="Video">
+          <option>mp4</option><option>mov</option><option>mkv</option><option>webm</option><option>avi</option><option>gif</option>
+        </optgroup>
+        <optgroup label="Audio">
+          <option>mp3</option><option>wav</option><option>flac</option><option>aac</option><option>m4a</option><option>ogg</option><option>opus</option>
+        </optgroup>
+      </select>
+      <label>Quality</label>
+      <select id="qual"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option></select>
+      <button class="primary" id="go" disabled>Convert</button>
+      <button id="clear">Clear</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="fast" checked> Fast mode: copy video without re-encoding (MP4/MOV/MKV only, much quicker)</label>
+    </div>
+    <p id="msg">Engine loads on first convert (about 30 MB, then cached). Internet needed the first time.</p>
+    <pre id="log" style="max-height:120px;overflow:auto;font-size:11px;color:var(--mu);margin:0;white-space:pre-wrap"></pre>
+  </div>
+
+  <div class="card" id="list" hidden></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const FF_BASE   = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
+const CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+
+// codec args per target; {crf}/{abr} filled from quality
+const Q = { low:{crf:30,abr:"96k",vp9:40}, medium:{crf:25,abr:"160k",vp9:33}, high:{crf:20,abr:"256k",vp9:28} };
+function args(ext, q) {
+  const p = Q[q];
+  switch (ext) {
+    case "mp4": case "mov": return ["-c:v","libx264","-preset","ultrafast","-crf",p.crf,"-pix_fmt","yuv420p","-c:a","aac","-b:a",p.abr, ...(ext==="mp4"?["-movflags","+faststart"]:[])];
+    case "mkv": return ["-c:v","libx264","-preset","ultrafast","-crf",p.crf,"-c:a","aac","-b:a",p.abr];
+    case "webm": return ["-c:v","libvpx","-crf",p.vp9,"-b:v","1M","-deadline","realtime","-cpu-used","8","-c:a","libvorbis"];
+    case "avi": return ["-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-c:a","libmp3lame","-b:a",p.abr];
+    case "gif": return ["-vf","fps=12,scale=480:-1:flags=lanczos","-an","-loop","0"];
+    case "mp3": return ["-vn","-c:a","libmp3lame","-b:a",p.abr];
+    case "wav": return ["-vn","-c:a","pcm_s16le"];
+    case "flac": return ["-vn","-c:a","flac"];
+    case "aac": case "m4a": return ["-vn","-c:a","aac","-b:a",p.abr];
+    case "ogg": return ["-vn","-c:a","libvorbis","-b:a",p.abr];
+    case "opus": return ["-vn","-c:a","libopus","-b:a",p.abr];
+  }
+  return [];
+}
+
+let files = [], ffmpeg = null, busy = false;
+
+function render() {
+  const list = $("list");
+  list.hidden = !files.length;
+  list.innerHTML = "";
+  files.forEach((f, i) => {
+    const d = document.createElement("div");
+    d.className = "file";
+    d.innerHTML = `<div class="name"><div></div><div class="bar"><i></i></div></div><div class="st"></div>`;
+    d.querySelector(".name div").textContent = f.file.name;
+    f.el = d;
+    list.appendChild(d);
+    setStatus(f, f.status || "Ready", f.cls);
+  });
+  $("go").disabled = busy || !files.length;
+}
+function setStatus(f, t, cls = "") {
+  f.status = t; f.cls = cls;
+  const s = f.el.querySelector(".st"); s.className = "st " + cls; s.textContent = t;
+}
+function setBar(f, p) { f.el.querySelector(".bar i").style.width = (p*100).toFixed(1) + "%"; }
+
+function add(list) {
+  for (const file of list) files.push({ file });
+  render();
+}
+$("drop").onclick = () => $("pick").click();
+$("pick").onchange = e => { add(e.target.files); e.target.value = ""; };
+["dragover","dragenter"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave","drop"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", e => add(e.dataTransfer.files));
+$("clear").onclick = () => { if (!busy) { files = []; render(); } };
+
+async function loadEngine() {
+  if (ffmpeg) return ffmpeg;
+  const { FFmpeg } = FFmpegWASM;
+  const logTo = t => { const l = $("log"); l.textContent += t + "\n"; l.scrollTop = l.scrollHeight; };
+  $("msg").textContent = "Loading conversion engine… 0%";
+  // own downloader with progress (the library's built-in one fails with "body stream already read")
+  async function blobURL(url, mime, showProgress) {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error("download failed (" + resp.status + ") " + url);
+    const total = +resp.headers.get("content-length") || 32 * 1048576; // wasm is ~31 MB
+    const reader = resp.body.getReader();
+    const chunks = []; let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); got += value.length;
+      if (showProgress) $("msg").textContent = "Downloading engine… " + Math.min(99, Math.round(got / total * 100)) + "% (" + (got / 1048576).toFixed(1) + " MB)";
+    }
+    return URL.createObjectURL(new Blob(chunks, { type: mime }));
+  }
+  // blob URLs avoid cross-origin worker/wasm problems when opened from a local file
+  const classWorkerURL = await blobURL(`${FF_BASE}/814.ffmpeg.js`, "text/javascript");
+  const wasmURL = await blobURL(`${CORE_BASE}/ffmpeg-core.wasm`, "application/wasm", true);
+
+  // The worker runs as a module, which needs the ESM core; fall back to the UMD core if that fails.
+  const flavours = [["esm", "ESM"], ["umd", "UMD"]];
+  let lastErr;
+  for (const [dir, label] of flavours) {
+    try {
+      $("msg").textContent = "Starting engine (" + label + ")…";
+      const coreURL = await blobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/${dir}/ffmpeg-core.js`, "text/javascript");
+      const inst = new FFmpeg();
+      inst.on("log", ({ message }) => logTo(message));
+      await Promise.race([
+        inst.load({ classWorkerURL, coreURL, wasmURL }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("engine start timed out")), 45000)),
+      ]);
+      ffmpeg = inst;
+      $("msg").textContent = "Engine ready.";
+      return ffmpeg;
+    } catch (e) {
+      lastErr = e;
+      logTo("Engine start failed with " + label + " core: " + (e && e.message || e));
+    }
+  }
+  throw lastErr;
+}
+
+$("go").onclick = async () => {
+  busy = true; $("go").disabled = true;
+  const ext = $("fmt").value, q = $("qual").value;
+  try { await loadEngine(); }
+  catch (e) {
+    $("msg").textContent = "Could not start the engine (see the grey log below). (" + e.message + ")";
+    busy = false; render(); return;
+  }
+  const { fetchFile } = FFmpegUtil;
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    if (f.done) continue;
+    const inName = "in_" + i + "." + (f.file.name.split(".").pop() || "bin");
+    const outName = "out_" + i + "." + ext;
+    const onProg = ({ progress }) => { if (progress >= 0 && progress <= 1) setBar(f, progress); };
+    try {
+      setStatus(f, "Converting…");
+      ffmpeg.on("progress", onProg);
+      await ffmpeg.writeFile(inName, await fetchFile(f.file));
+      let code = 1;
+      if ($("fast").checked && ["mp4","mov","mkv"].includes(ext)) {
+        setStatus(f, "Fast copy…");
+        code = await ffmpeg.exec(["-i", inName, "-c", "copy", ...(ext==="mp4"?["-movflags","+faststart"]:[]), outName]);
+        if (code !== 0) setStatus(f, "Copy not possible, re-encoding (slow)…");
+      }
+      if (code !== 0) {
+        setStatus(f, "Converting (slow)…");
+        code = await ffmpeg.exec(["-i", inName, ...args(ext, q), outName]);
+      }
+      if (code !== 0) throw new Error("ffmpeg could not convert this file");
+      const data = await ffmpeg.readFile(outName);
+      const url = URL.createObjectURL(new Blob([data.buffer]));
+      const base = f.file.name.replace(/\.[^.]+$/, "");
+      setBar(f, 1);
+      const s = f.el.querySelector(".st");
+      s.className = "st ok";
+      s.innerHTML = `<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext}</a>`;
+      f.done = true;
+      await ffmpeg.deleteFile(inName).catch(()=>{});
+      await ffmpeg.deleteFile(outName).catch(()=>{});
+    } catch (e) {
+      setStatus(f, "Failed: " + e.message, "er");
+    } finally {
+      ffmpeg.off("progress", onProg);
+    }
+  }
+  busy = false; $("go").disabled = false;
+  $("msg").textContent = "Finished. Click Download next to each file.";
+};
+</script>
+</body>
+</html>
