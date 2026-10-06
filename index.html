@@ -5,227 +5,183 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MediaConvert</title>
 <style>
-  :root { --bg:#f6f7f9; --card:#fff; --tx:#1b1f24; --mu:#6b7280; --ac:#2563eb; --bd:#d9dde3; --ok:#16a34a; --er:#dc2626; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#14161a; --card:#1d2026; --tx:#e8eaed; --mu:#9aa0a8; --bd:#33373f; }
-  }
-  * { box-sizing:border-box }
-  body { margin:0; background:var(--bg); color:var(--tx); font:15px/1.5 system-ui,sans-serif; padding:24px }
-  .wrap { max-width:680px; margin:0 auto }
-  h1 { font-size:22px; margin:0 0 4px }
-  p.sub { color:var(--mu); margin:0 0 18px }
-  .card { background:var(--card); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-bottom:14px }
-  #drop { border:2px dashed var(--bd); border-radius:12px; padding:32px; text-align:center; cursor:pointer; color:var(--mu) }
-  #drop.over { border-color:var(--ac); color:var(--ac) }
-  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center }
-  label { color:var(--mu); font-size:13px }
-  select, button { font:inherit; padding:8px 12px; border-radius:8px; border:1px solid var(--bd); background:var(--card); color:var(--tx) }
-  button.primary { background:var(--ac); color:#fff; border-color:var(--ac); cursor:pointer }
-  button:disabled { opacity:.5; cursor:not-allowed }
-  .file { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--bd) }
-  .file:first-child { border-top:0 }
-  .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 }
-  .st { font-size:13px; color:var(--mu); white-space:nowrap }
-  .st.ok { color:var(--ok) } .st.er { color:var(--er) }
-  .bar { height:4px; background:var(--bd); border-radius:2px; margin-top:6px; overflow:hidden }
-  .bar > i { display:block; height:100%; width:0; background:var(--ac) }
-  a.dl { color:var(--ac); text-decoration:none; font-weight:600 }
-  #msg { color:var(--mu); font-size:13px }
+:root{--bg:#f4f5fb;--card:#fff;--tx:#14161f;--mu:#6b7080;--bd:#e3e5ef;--ac:#6d5efc;--ac2:#22d3ee;--ok:#16a34a;--er:#e11d48;--chip:#eef0fb}
+@media(prefers-color-scheme:dark){:root{--bg:#0d0f17;--card:#161926;--tx:#eceefa;--mu:#8e93a8;--bd:#262a3d;--chip:#1e2235}}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 400px at 10% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent),radial-gradient(700px 400px at 100% 0,color-mix(in srgb,var(--ac2) 16%,transparent),transparent),var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:32px 16px}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:30px;margin:0;letter-spacing:-.5px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mu);margin:4px 0 22px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(20,20,60,.06)}
+#drop{border:2px dashed var(--bd);border-radius:14px;padding:34px 16px;text-align:center;cursor:pointer;color:var(--mu);transition:.2s}
+#drop:hover,#drop.over{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent);color:var(--ac)}
+#drop svg{width:42px;height:42px;stroke:currentColor;fill:none;stroke-width:1.6;margin-bottom:6px}
+#drop b{display:block;color:var(--tx);font-size:16px}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{border:1px solid var(--bd);background:var(--chip);color:var(--tx);padding:7px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--ac)}
+.chip.on{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 40%,transparent)}
+.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:16px}
+.seg .chip{border:0;background:none;border-radius:9px}
+.seg .chip.on{box-shadow:none}
+.opt{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:13.5px;margin-bottom:14px;cursor:pointer}
+.opt input{accent-color:var(--ac);width:16px;height:16px}
+.btns{display:flex;gap:10px}
+button.go{flex:1;padding:13px;border:0;border-radius:12px;font:inherit;font-weight:600;font-size:16px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ac),#8b5cf6);box-shadow:0 8px 22px color-mix(in srgb,var(--ac) 40%,transparent);transition:.15s}
+button.go:hover:not(:disabled){transform:translateY(-1px)}
+button.go:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+button.sec{padding:13px 18px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+#msg{color:var(--mu);font-size:13px;margin:12px 0 0}
+#log{display:none;max-height:110px;overflow:auto;font-size:11px;color:var(--mu);margin:8px 0 0;white-space:pre-wrap}
+.file{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--bd)}
+.file:first-of-type{border-top:0}
+.ico{width:40px;height:40px;border-radius:11px;background:var(--chip);display:grid;place-items:center;font-size:19px;flex:none}
+.mid{flex:1;min-width:0}
+.name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.meta{font-size:12.5px;color:var(--mu)}
+.bar{height:5px;background:var(--bd);border-radius:3px;margin-top:7px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .2s}
+.st{font-size:13px;color:var(--mu);text-align:right;max-width:210px}
+.st.er{color:var(--er)}
+a.dl{display:inline-block;background:var(--ok);color:#fff;text-decoration:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13.5px}
+footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>MediaConvert</h1>
-  <p class="sub">Convert video and audio between formats, right in your browser. Files never leave your computer.</p>
+<h1>MediaConvert</h1>
+<p class="sub">Convert video and audio in your browser. Private: files never leave your device.</p>
 
-  <div class="card">
-    <div id="drop">Drop files here or click to choose<br><small>MOV, MKV, AVI, MP4, WebM, MP3, WAV, FLAC, M4A, OGG and more</small></div>
-    <input id="pick" type="file" multiple accept="video/*,audio/*,.mkv,.mov,.avi,.wmv,.flv,.ts,.3gp,.m4a,.flac,.opus,.ogg,.wma,.aiff" hidden>
-  </div>
+<div class="card">
+ <div id="drop"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><b>Drop files here or click to browse</b>MOV, MKV, AVI, MP4, WebM, MP3, WAV, FLAC, M4A and more</div>
+ <input id="pick" type="file" multiple hidden accept="video/*,audio/*,.mkv,.mov,.avi,.wmv,.flv,.ts,.3gp,.m4a,.flac,.opus,.ogg,.wma,.aiff,.hevc,.m2ts">
+</div>
 
-  <div class="card">
-    <div class="row">
-      <label>Convert to</label>
-      <select id="fmt">
-        <optgroup label="Video">
-          <option>mp4</option><option>mov</option><option>mkv</option><option>webm</option><option>avi</option><option>gif</option>
-        </optgroup>
-        <optgroup label="Audio">
-          <option>mp3</option><option>wav</option><option>flac</option><option>aac</option><option>m4a</option><option>ogg</option><option>opus</option>
-        </optgroup>
-      </select>
-      <label>Quality</label>
-      <select id="qual"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option></select>
-      <button class="primary" id="go" disabled>Convert</button>
-      <button id="clear">Clear</button>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <label><input type="checkbox" id="fast" checked> Fast mode: copy video without re-encoding (MP4/MOV/MKV only, much quicker)</label>
-    </div>
-    <p id="msg">Engine loads on first convert (about 30 MB, then cached). Internet needed the first time.</p>
-    <pre id="log" style="max-height:120px;overflow:auto;font-size:11px;color:var(--mu);margin:0;white-space:pre-wrap"></pre>
-  </div>
+<div class="card">
+ <p class="lbl">Convert to</p>
+ <div class="chips" id="fmts"></div>
+ <p class="lbl">Quality</p>
+ <div class="seg" id="quals"><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip on" data-q="high">High</button></div>
+ <label class="opt"><input type="checkbox" id="fast" checked> Smart fast mode: skip re-encoding when the video is already compatible</label>
+ <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
+ <p id="msg">The conversion engine (about 30 MB) downloads on first use, then it is cached.</p>
+ <pre id="log"></pre>
+</div>
 
-  <div class="card" id="list" hidden></div>
+<div class="card" id="list" hidden></div>
+<footer>Powered by FFmpeg (WebAssembly). Large or unusual files may take a while.</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-const FF_BASE   = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
-const CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+const $=id=>document.getElementById(id);
+const FF_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
+const CORE_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+const VID=["mp4","mov","mkv","webm","avi","gif"],AUD=["mp3","wav","flac","aac","m4a","ogg","opus"];
+let fmt="mp4",qual="high",files=[],ffmpeg=null,busy=false,logBuf=[];
 
-// codec args per target; {crf}/{abr} filled from quality
-const Q = { low:{crf:30,abr:"96k",vp9:40}, medium:{crf:25,abr:"160k",vp9:33}, high:{crf:20,abr:"256k",vp9:28} };
-function args(ext, q) {
-  const p = Q[q];
-  switch (ext) {
-    case "mp4": case "mov": return ["-c:v","libx264","-preset","ultrafast","-crf",p.crf,"-pix_fmt","yuv420p","-c:a","aac","-b:a",p.abr, ...(ext==="mp4"?["-movflags","+faststart"]:[])];
-    case "mkv": return ["-c:v","libx264","-preset","ultrafast","-crf",p.crf,"-c:a","aac","-b:a",p.abr];
-    case "webm": return ["-c:v","libvpx","-crf",p.vp9,"-b:v","1M","-deadline","realtime","-cpu-used","8","-c:a","libvorbis"];
-    case "avi": return ["-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-c:a","libmp3lame","-b:a",p.abr];
-    case "gif": return ["-vf","fps=12,scale=480:-1:flags=lanczos","-an","-loop","0"];
-    case "mp3": return ["-vn","-c:a","libmp3lame","-b:a",p.abr];
-    case "wav": return ["-vn","-c:a","pcm_s16le"];
-    case "flac": return ["-vn","-c:a","flac"];
-    case "aac": case "m4a": return ["-vn","-c:a","aac","-b:a",p.abr];
-    case "ogg": return ["-vn","-c:a","libvorbis","-b:a",p.abr];
-    case "opus": return ["-vn","-c:a","libopus","-b:a",p.abr];
-  }
-  return [];
-}
+// ---- format chips
+$("fmts").innerHTML=[...VID.map(e=>[e,"v"]),...AUD.map(e=>[e,"a"])].map(([e,k])=>`<button class="chip${e===fmt?" on":""}" data-f="${e}">${e.toUpperCase()}</button>`).join("");
+$("fmts").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;fmt=b.dataset.f;document.querySelectorAll("#fmts .chip").forEach(c=>c.classList.toggle("on",c===b))};
+$("quals").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;qual=b.dataset.q;document.querySelectorAll("#quals .chip").forEach(c=>c.classList.toggle("on",c===b))};
 
-let files = [], ffmpeg = null, busy = false;
+// ---- ffmpeg arguments
+const Q={low:{crf:30,abr:"96k",vp9:40},medium:{crf:25,abr:"160k",vp9:33},high:{crf:20,abr:"256k",vp9:28}};
+const MAPS=["-map","0:v:0?","-map","0:a:0?","-sn","-dn"];          // keep only first video + audio (drops iPhone data tracks)
+const EVEN="scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p";    // even size + 8-bit 4:2:0 for compatibility
+const x264=q=>["-c:v","libx264","-preset","ultrafast","-crf",Q[q].crf,"-vf",EVEN];
+function args(ext,q){const p=Q[q];switch(ext){
+ case"mp4":case"mov":case"mkv":return[...MAPS,...x264(q),"-c:a","aac","-b:a",p.abr,...(ext==="mp4"?["-movflags","+faststart"]:[])];
+ case"webm":return[...MAPS,"-c:v","libvpx","-crf",p.vp9,"-b:v","1M","-deadline","realtime","-cpu-used","8","-vf",EVEN,"-c:a","libvorbis"];
+ case"avi":return[...MAPS,"-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-vf",EVEN,"-c:a","libmp3lame","-b:a",p.abr];
+ case"gif":return["-map","0:v:0","-vf","fps=12,scale=480:-1:flags=lanczos","-an","-loop","0"];
+ case"mp3":return["-map","0:a:0","-vn","-c:a","libmp3lame","-b:a",p.abr];
+ case"wav":return["-map","0:a:0","-vn","-c:a","pcm_s16le"];
+ case"flac":return["-map","0:a:0","-vn","-c:a","flac"];
+ case"aac":case"m4a":return["-map","0:a:0","-vn","-c:a","aac","-b:a",p.abr];
+ case"ogg":return["-map","0:a:0","-vn","-c:a","libvorbis","-b:a",p.abr];
+ case"opus":return["-map","0:a:0","-vn","-c:a","libopus","-b:a",p.abr];}return[]}
 
-function render() {
-  const list = $("list");
-  list.hidden = !files.length;
-  list.innerHTML = "";
-  files.forEach((f, i) => {
-    const d = document.createElement("div");
-    d.className = "file";
-    d.innerHTML = `<div class="name"><div></div><div class="bar"><i></i></div></div><div class="st"></div>`;
-    d.querySelector(".name div").textContent = f.file.name;
-    f.el = d;
-    list.appendChild(d);
-    setStatus(f, f.status || "Ready", f.cls);
-  });
-  $("go").disabled = busy || !files.length;
-}
-function setStatus(f, t, cls = "") {
-  f.status = t; f.cls = cls;
-  const s = f.el.querySelector(".st"); s.className = "st " + cls; s.textContent = t;
-}
-function setBar(f, p) { f.el.querySelector(".bar i").style.width = (p*100).toFixed(1) + "%"; }
+// ---- UI
+const fmtSize=b=>b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB";
+function render(){const l=$("list");l.hidden=!files.length;l.innerHTML="";
+ files.forEach(f=>{const d=document.createElement("div");d.className="file";
+  d.innerHTML=`<div class="ico">${f.file.type.startsWith("audio")?"🎵":"🎞️"}</div><div class="mid"><div class="name"></div><div class="meta"></div><div class="bar"><i></i></div></div><div class="st"></div>`;
+  d.querySelector(".name").textContent=f.file.name;
+  d.querySelector(".meta").textContent=fmtSize(f.file.size);
+  f.el=d;l.appendChild(d);setSt(f,f.status||"Ready",f.cls);if(f.html)d.querySelector(".st").innerHTML=f.html;setBar(f,f.p||0)});
+ $("go").disabled=busy||!files.length}
+function setSt(f,t,c=""){f.status=t;f.cls=c;f.html=null;const s=f.el.querySelector(".st");s.className="st "+c;s.textContent=t}
+function setBar(f,p){f.p=p;f.el.querySelector(".bar i").style.width=(p*100).toFixed(1)+"%"}
+const add=list=>{for(const file of list)files.push({file});render()};
+$("drop").onclick=()=>$("pick").click();
+$("pick").onchange=e=>{add(e.target.files);e.target.value=""};
+["dragover","dragenter"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.add("over")}));
+["dragleave","drop"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.remove("over")}));
+$("drop").addEventListener("drop",e=>add(e.dataTransfer.files));
+$("clear").onclick=()=>{if(!busy){files=[];render()}};
 
-function add(list) {
-  for (const file of list) files.push({ file });
-  render();
-}
-$("drop").onclick = () => $("pick").click();
-$("pick").onchange = e => { add(e.target.files); e.target.value = ""; };
-["dragover","dragenter"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.add("over"); }));
-["dragleave","drop"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.remove("over"); }));
-$("drop").addEventListener("drop", e => add(e.dataTransfer.files));
-$("clear").onclick = () => { if (!busy) { files = []; render(); } };
+// ---- engine
+async function loadEngine(){
+ if(ffmpeg)return ffmpeg;
+ const{FFmpeg}=FFmpegWASM;
+ async function blobURL(url,mime,show){const r=await fetch(url);if(!r.ok)throw new Error("download failed ("+r.status+")");
+  const total=+r.headers.get("content-length")||32*1048576,rd=r.body.getReader(),ch=[];let got=0;
+  for(;;){const{done,value}=await rd.read();if(done)break;ch.push(value);got+=value.length;
+   if(show)$("msg").textContent="Downloading engine… "+Math.min(99,Math.round(got/total*100))+"%"}
+  return URL.createObjectURL(new Blob(ch,{type:mime}))}
+ $("msg").textContent="Downloading engine… 0%";
+ const classWorkerURL=await blobURL(`${FF_BASE}/814.ffmpeg.js`,"text/javascript");
+ const wasmURL=await blobURL(`${CORE_BASE}/ffmpeg-core.wasm`,"application/wasm",true);
+ let last;
+ for(const dir of["esm","umd"]){try{
+  $("msg").textContent="Starting engine…";
+  const coreURL=await blobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/${dir}/ffmpeg-core.js`,"text/javascript");
+  const inst=new FFmpeg();
+  inst.on("log",({message})=>{logBuf.push(message);if(logBuf.length>400)logBuf.shift();const l=$("log");l.textContent+=message+"\n";l.scrollTop=l.scrollHeight});
+  await Promise.race([inst.load({classWorkerURL,coreURL,wasmURL}),new Promise((_,j)=>setTimeout(()=>j(new Error("engine start timed out")),45000))]);
+  ffmpeg=inst;$("msg").textContent="Engine ready.";return ffmpeg}catch(e){last=e}}
+ throw last}
 
-async function loadEngine() {
-  if (ffmpeg) return ffmpeg;
-  const { FFmpeg } = FFmpegWASM;
-  const logTo = t => { const l = $("log"); l.textContent += t + "\n"; l.scrollTop = l.scrollHeight; };
-  $("msg").textContent = "Loading conversion engine… 0%";
-  // own downloader with progress (the library's built-in one fails with "body stream already read")
-  async function blobURL(url, mime, showProgress) {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error("download failed (" + resp.status + ") " + url);
-    const total = +resp.headers.get("content-length") || 32 * 1048576; // wasm is ~31 MB
-    const reader = resp.body.getReader();
-    const chunks = []; let got = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value); got += value.length;
-      if (showProgress) $("msg").textContent = "Downloading engine… " + Math.min(99, Math.round(got / total * 100)) + "% (" + (got / 1048576).toFixed(1) + " MB)";
-    }
-    return URL.createObjectURL(new Blob(chunks, { type: mime }));
-  }
-  // blob URLs avoid cross-origin worker/wasm problems when opened from a local file
-  const classWorkerURL = await blobURL(`${FF_BASE}/814.ffmpeg.js`, "text/javascript");
-  const wasmURL = await blobURL(`${CORE_BASE}/ffmpeg-core.wasm`, "application/wasm", true);
+// ---- conversion
+async function probe(inName){logBuf.length=0;await ffmpeg.exec(["-hide_banner","-i",inName]);
+ const t=logBuf.join("\n");return{v:(t.match(/Video: (\w+)/)||[])[1],a:(t.match(/Audio: (\w+)/)||[])[1]}}
+const tail=()=>{const l=logBuf.filter(x=>x.trim()).slice(-2).join(" | ");return l?l.slice(0,160):"unsupported or corrupt file"};
 
-  // The worker runs as a module, which needs the ESM core; fall back to the UMD core if that fails.
-  const flavours = [["esm", "ESM"], ["umd", "UMD"]];
-  let lastErr;
-  for (const [dir, label] of flavours) {
-    try {
-      $("msg").textContent = "Starting engine (" + label + ")…";
-      const coreURL = await blobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/${dir}/ffmpeg-core.js`, "text/javascript");
-      const inst = new FFmpeg();
-      inst.on("log", ({ message }) => logTo(message));
-      await Promise.race([
-        inst.load({ classWorkerURL, coreURL, wasmURL }),
-        new Promise((_, rej) => setTimeout(() => rej(new Error("engine start timed out")), 45000)),
-      ]);
-      ffmpeg = inst;
-      $("msg").textContent = "Engine ready.";
-      return ffmpeg;
-    } catch (e) {
-      lastErr = e;
-      logTo("Engine start failed with " + label + " core: " + (e && e.message || e));
-    }
-  }
-  throw lastErr;
-}
+async function run(inName,outName,a){logBuf.length=0;let code;
+ try{code=await ffmpeg.exec(["-y","-i",inName,...a,outName])}catch(e){code=1}
+ if(code!==0)return null;
+ try{const d=await ffmpeg.readFile(outName);return d.length>2048?d:null}catch(e){return null}}
 
-$("go").onclick = async () => {
-  busy = true; $("go").disabled = true;
-  const ext = $("fmt").value, q = $("qual").value;
-  try { await loadEngine(); }
-  catch (e) {
-    $("msg").textContent = "Could not start the engine (see the grey log below). (" + e.message + ")";
-    busy = false; render(); return;
-  }
-  const { fetchFile } = FFmpegUtil;
-  for (let i = 0; i < files.length; i++) {
-    const f = files[i];
-    if (f.done) continue;
-    const inName = "in_" + i + "." + (f.file.name.split(".").pop() || "bin");
-    const outName = "out_" + i + "." + ext;
-    const onProg = ({ progress }) => { if (progress >= 0 && progress <= 1) setBar(f, progress); };
-    try {
-      setStatus(f, "Converting…");
-      ffmpeg.on("progress", onProg);
-      await ffmpeg.writeFile(inName, await fetchFile(f.file));
-      let code = 1;
-      if ($("fast").checked && ["mp4","mov","mkv"].includes(ext)) {
-        setStatus(f, "Fast copy…");
-        code = await ffmpeg.exec(["-i", inName, "-c", "copy", ...(ext==="mp4"?["-movflags","+faststart"]:[]), outName]);
-        if (code !== 0) setStatus(f, "Copy not possible, re-encoding (slow)…");
-      }
-      if (code !== 0) {
-        setStatus(f, "Converting (slow)…");
-        code = await ffmpeg.exec(["-i", inName, ...args(ext, q), outName]);
-      }
-      if (code !== 0) throw new Error("ffmpeg could not convert this file");
-      const data = await ffmpeg.readFile(outName);
-      const url = URL.createObjectURL(new Blob([data.buffer]));
-      const base = f.file.name.replace(/\.[^.]+$/, "");
-      setBar(f, 1);
-      const s = f.el.querySelector(".st");
-      s.className = "st ok";
-      s.innerHTML = `<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext}</a>`;
-      f.done = true;
-      await ffmpeg.deleteFile(inName).catch(()=>{});
-      await ffmpeg.deleteFile(outName).catch(()=>{});
-    } catch (e) {
-      setStatus(f, "Failed: " + e.message, "er");
-    } finally {
-      ffmpeg.off("progress", onProg);
-    }
-  }
-  busy = false; $("go").disabled = false;
-  $("msg").textContent = "Finished. Click Download next to each file.";
+$("go").onclick=async()=>{
+ busy=true;$("go").disabled=true;const ext=fmt,q=qual;
+ try{await loadEngine()}catch(e){$("msg").textContent="Could not start the engine ("+e.message+"). Reload and try again.";$("log").style.display="block";busy=false;render();return}
+ const{fetchFile}=FFmpegUtil,isMedia=["mp4","mov","mkv"].includes(ext);
+ for(let i=0;i<files.length;i++){const f=files[i];if(f.done)continue;
+  const inName="in_"+i+"."+(f.file.name.split(".").pop()||"bin"),outName="out_"+i+"."+ext;
+  const onP=({progress})=>{if(progress>=0&&progress<=1)setBar(f,progress)};
+  try{
+   setBar(f,0);ffmpeg.on("progress",onP);
+   await ffmpeg.writeFile(inName,await fetchFile(f.file));
+   let data=null;
+   if($("fast").checked&&isMedia){
+    setSt(f,"Analyzing…");const p=await probe(inName);
+    const vCopy=p.v==="h264",aCopy=!p.a||["aac","mp3"].includes(p.a);
+    const a=[...MAPS,...(vCopy?["-c:v","copy"]:x264(q)),...(p.a?(aCopy?["-c:a","copy"]:["-c:a","aac","-b:a",Q[q].abr]):[]),...(ext==="mp4"?["-movflags","+faststart"]:[])];
+    setSt(f,vCopy?"Fast copy…":"Re-encoding video…");
+    data=await run(inName,outName,a);
+    if(!data&&vCopy)setSt(f,"Copy failed, re-encoding…");
+   }
+   if(!data){setSt(f,"Converting…");setBar(f,0);data=await run(inName,outName,args(ext,q))}
+   if(!data)throw new Error(tail());
+   const url=URL.createObjectURL(new Blob([data.buffer])),base=f.file.name.replace(/\.[^.]+$/,"");
+   setBar(f,1);f.done=true;f.html=`<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext.toUpperCase()}</a>`;
+   f.el.querySelector(".st").innerHTML=f.html;f.el.querySelector(".meta").textContent=fmtSize(f.file.size)+" → "+fmtSize(data.length);
+  }catch(e){setSt(f,"Failed: "+e.message,"er");$("log").style.display="block"}
+  finally{ffmpeg.off("progress",onP);await ffmpeg.deleteFile(inName).catch(()=>{});await ffmpeg.deleteFile(outName).catch(()=>{})}}
+ busy=false;$("go").disabled=false;$("msg").textContent="Finished. Use the green Download buttons.";
 };
 </script>
 </body>
