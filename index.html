@@ -29,7 +29,7 @@ h1{font-size:30px;margin:0;letter-spacing:-.5px;background:linear-gradient(90deg
 .chip.on{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 40%,transparent)}
 .seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:16px}
 .seg .chip{border:0;background:none;border-radius:9px}
-.seg .chip.on{box-shadow:none}
+.seg .chip.on{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 40%,transparent)}
 .opt{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:13.5px;margin-bottom:14px;cursor:pointer}
 .opt input{accent-color:var(--ac);width:16px;height:16px}
 .btns{display:flex;gap:10px}
@@ -70,8 +70,8 @@ footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
  <p class="lbl">Convert to</p>
  <div class="chips" id="fmts"></div>
  <p class="lbl">Quality</p>
- <div class="seg" id="quals"><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip on" data-q="high">High</button></div>
- <label class="opt"><input type="checkbox" id="fast" checked> Smart fast mode: skip re-encoding when the video is already compatible</label>
+ <div class="seg" id="quals"><button class="chip on" data-q="orig">Original</button><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip" data-q="high">High</button></div>
+ <p class="meta" id="qhint" style="margin:-6px 0 14px"></p>
  <label class="opt"><input type="checkbox" id="beside" checked> Save results next to the original files (choose a parent folder once; Chrome remembers it)</label>
  <label class="opt"><input type="checkbox" id="skipex" checked> Skip files that already have a converted version in that folder</label>
  <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
@@ -90,23 +90,28 @@ const $=id=>document.getElementById(id);
 const FF_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
 const CORE_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
 const VID=["mp4","mov","mkv","webm","avi","gif"],AUD=["mp3","wav","flac","aac","m4a","ogg","opus"];
-let fmt="mp4",qual="high",files=[],ffmpeg=null,busy=false,logBuf=[];
+let fmt="mp4",qual="orig",files=[],ffmpeg=null,busy=false,logBuf=[];
 
 // ---- format chips
 $("fmts").innerHTML=[...VID.map(e=>[e,"v"]),...AUD.map(e=>[e,"a"])].map(([e,k])=>`<button class="chip${e===fmt?" on":""}" data-f="${e}">${e.toUpperCase()}</button>`).join("");
 $("fmts").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;fmt=b.dataset.f;document.querySelectorAll("#fmts .chip").forEach(c=>c.classList.toggle("on",c===b))};
-$("quals").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;qual=b.dataset.q;document.querySelectorAll("#quals .chip").forEach(c=>c.classList.toggle("on",c===b))};
+const HINT={orig:"Original: keeps the video untouched when it is already compatible. Fastest, same quality and size.",low:"Small: re-encodes, caps height at 720p. Much smaller file, lower quality.",medium:"Balanced: re-encodes, caps height at 1080p. Good quality, smaller file.",high:"High: re-encodes at full resolution. Best quality, slower."};
+const setHint=()=>{$("qhint").textContent=HINT[qual]};
+$("quals").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;qual=b.dataset.q;document.querySelectorAll("#quals .chip").forEach(c=>c.classList.toggle("on",c===b));setHint()};
+setHint();
 
 // ---- ffmpeg arguments
-const Q={low:{crf:"30",abr:"96k",vp9:"40"},medium:{crf:"25",abr:"160k",vp9:"33"},high:{crf:"20",abr:"256k",vp9:"28"}};
+const Q={low:{crf:"34",abr:"96k",vp9:"40",vb:"700k",h:"720",gif:"fps=10,scale=360:-1:flags=lanczos"},
+ medium:{crf:"27",abr:"160k",vp9:"33",vb:"2M",h:"1080",gif:"fps=12,scale=480:-1:flags=lanczos"},
+ high:{crf:"20",abr:"256k",vp9:"28",vb:"6M",h:"",gif:"fps=15,scale=640:-1:flags=lanczos"}};
 const MAPS=["-map","0:v:0?","-map","0:a:0?","-sn","-dn"];          // keep only first video + audio (drops iPhone data tracks)
-const EVEN="scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p";    // even size + 8-bit 4:2:0 for compatibility
-const x264=q=>["-c:v","libx264","-preset","ultrafast","-crf",Q[q].crf,"-vf",EVEN];
+const vf=q=>(Q[q].h?"scale=-2:trunc(min(ih\\,"+Q[q].h+")/2)*2":"scale=trunc(iw/2)*2:trunc(ih/2)*2")+",format=yuv420p";    // even size + 8-bit 4:2:0 for compatibility
+const x264=q=>["-c:v","libx264","-preset","ultrafast","-crf",Q[q].crf,"-vf",vf(q)];
 function args(ext,q){const p=Q[q];switch(ext){
  case"mp4":case"mov":case"mkv":return[...MAPS,...x264(q),"-c:a","aac","-b:a",p.abr,...(ext==="mp4"?["-movflags","+faststart"]:[])];
- case"webm":return[...MAPS,"-c:v","libvpx","-crf",p.vp9,"-b:v","1M","-deadline","realtime","-cpu-used","8","-vf",EVEN,"-c:a","libvorbis"];
- case"avi":return[...MAPS,"-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-vf",EVEN,"-c:a","libmp3lame","-b:a",p.abr];
- case"gif":return["-map","0:v:0","-vf","fps=12,scale=480:-1:flags=lanczos","-an","-loop","0"];
+ case"webm":return[...MAPS,"-c:v","libvpx","-crf",p.vp9,"-b:v",p.vb,"-deadline","realtime","-cpu-used","8","-vf",vf(q),"-c:a","libvorbis"];
+ case"avi":return[...MAPS,"-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-vf",vf(q),"-c:a","libmp3lame","-b:a",p.abr];
+ case"gif":return["-map","0:v:0","-vf",p.gif,"-an","-loop","0"];
  case"mp3":return["-map","0:a:0","-vn","-c:a","libmp3lame","-b:a",p.abr];
  case"wav":return["-map","0:a:0","-vn","-c:a","pcm_s16le"];
  case"flac":return["-map","0:a:0","-vn","-c:a","flac"];
@@ -184,7 +189,7 @@ async function run(inName,outName,a){logBuf.length=0;let code;
  try{const d=await ffmpeg.readFile(outName);return d.length>2048?d:null}catch(e){return null}}
 
 $("go").onclick=async()=>{
- busy=true;$("go").disabled=true;const ext=fmt,q=qual;
+ busy=true;$("go").disabled=true;const ext=fmt,q=qual==="orig"?"high":qual;
  if($("beside").checked&&window.showDirectoryPicker){
   if(!dirs.length)dirs=await loadDirs();
   const missing=[],need=new Set();
@@ -206,7 +211,7 @@ $("go").onclick=async()=>{
    setBar(f,0);ffmpeg.on("progress",onP);
    await ffmpeg.writeFile(inName,await fetchFile(f.file));
    let data=null;
-   if($("fast").checked&&isMedia){
+   if(qual==="orig"&&isMedia){
     setSt(f,"Analyzing…");const p=await probe(inName);
     const vCopy=p.v==="h264",aCopy=!p.a||["aac","mp3"].includes(p.a);
     const a=[...MAPS,...(vCopy?["-c:v","copy"]:x264(q)),...(p.a?(aCopy?["-c:a","copy"]:["-c:a","aac","-b:a",Q[q].abr]):[]),...(ext==="mp4"?["-movflags","+faststart"]:[])];
