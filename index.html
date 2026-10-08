@@ -72,7 +72,7 @@ footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
  <p class="lbl">Quality</p>
  <div class="seg" id="quals"><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip on" data-q="high">High</button></div>
  <label class="opt"><input type="checkbox" id="fast" checked> Smart fast mode: skip re-encoding when the video is already compatible</label>
- <label class="opt"><input type="checkbox" id="beside" checked> Save results next to the original files (Chrome/Edge asks once for the folder)</label>
+ <label class="opt"><input type="checkbox" id="beside" checked> Save results next to the original files (choose a parent folder once; Chrome remembers it)</label>
  <label class="opt"><input type="checkbox" id="skipex" checked> Skip files that already have a converted version in that folder</label>
  <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
  <p id="msg">The conversion engine (about 30 MB) downloads on first use, then it is cached.</p>
@@ -129,7 +129,11 @@ function setBar(f,p){f.p=p;f.el.querySelector(".bar i").style.width=(p*100).toFi
 const add=list=>{for(const it of list){const file=it.file||it;
   if(!files.some(x=>x.file.name===file.name&&x.file.size===file.size&&x.file.lastModified===file.lastModified))files.push(it.file?it:{file})}render()};
 const exists=async(d,n)=>{try{await d.getFileHandle(n);return true}catch(e){return false}};
-let saveDir=null;
+let dirs=[];
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open("mediaconvert",1);r.onupgradeneeded=()=>r.result.createObjectStore("dirs",{autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function loadDirs(){try{const db=await idb();return await new Promise(res=>{const q=db.transaction("dirs").objectStore("dirs").getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])})}catch(e){return[]}}
+async function storeDir(h){try{const db=await idb();db.transaction("dirs","readwrite").objectStore("dirs").add(h)}catch(e){}}
+async function findDir(handle){for(const d of dirs){try{const path=await d.resolve(handle);if(path)return{d,path}}catch(e){}}return null}
 $("drop").onclick=async()=>{
  if(!window.showOpenFilePicker){$("pick").click();return}
  try{const hs=await showOpenFilePicker({multiple:true,id:"mediaconvert",types:[{description:"Video and audio",accept:{
@@ -181,13 +185,18 @@ async function run(inName,outName,a){logBuf.length=0;let code;
 
 $("go").onclick=async()=>{
  busy=true;$("go").disabled=true;const ext=fmt,q=qual;
- if($("beside").checked&&!saveDir&&window.showDirectoryPicker){const first=files.find(f=>f.handle&&!f.done);
-  if(first){try{saveDir=await showDirectoryPicker({mode:"readwrite",id:"mediaconvert-save",startIn:first.handle})}catch(e){}}}
+ if($("beside").checked&&window.showDirectoryPicker){
+  if(!dirs.length)dirs=await loadDirs();
+  const missing=[],need=new Set();
+  for(const f of files){if(f.done||!f.handle)continue;const hit=await findDir(f.handle);if(hit)need.add(hit.d);else missing.push(f)}
+  if(missing.length){try{const d=await showDirectoryPicker({mode:"readwrite",id:"mediaconvert-save",startIn:missing[0].handle});dirs.push(d);storeDir(d)}catch(e){}}
+  for(const d of need){try{if(await d.queryPermission({mode:"readwrite"})!=="granted")await d.requestPermission({mode:"readwrite"})}catch(e){}}}
  try{await loadEngine()}catch(e){$("msg").textContent="Could not start the engine ("+e.message+"). Reload and try again.";$("log").style.display="block";busy=false;render();return}
  const{fetchFile}=FFmpegUtil,isMedia=["mp4","mov","mkv"].includes(ext);
  for(let i=0;i<files.length;i++){const f=files[i];if(f.done)continue;
   let tdir=null;
-  if(f.handle&&saveDir){try{const path=await saveDir.resolve(f.handle);if(path){let d=saveDir;for(const seg of path.slice(0,-1))d=await d.getDirectoryHandle(seg);tdir=d}}catch(e){}}
+  if(f.handle&&dirs.length){try{const hit=await findDir(f.handle);
+   if(hit&&await hit.d.queryPermission({mode:"readwrite"})==="granted"){let d=hit.d;for(const seg of hit.path.slice(0,-1))d=await d.getDirectoryHandle(seg);tdir=d}}catch(e){}}
   f.tdir=tdir;
   if(tdir&&$("skipex").checked){const cand=f.file.name.replace(/\.[^.]+$/,"")+"."+ext;
    if(cand!==f.file.name&&await exists(tdir,cand)){f.done=true;setBar(f,1);setSt(f,"Skipped: "+cand+" already exists","ok");continue}}
