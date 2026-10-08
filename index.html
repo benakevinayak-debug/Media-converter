@@ -50,6 +50,8 @@ button.sec{padding:13px 18px;border-radius:12px;border:1px solid var(--bd);backg
 .st{font-size:13px;color:var(--mu);text-align:right;max-width:210px}
 .st.er{color:var(--er)}.st.ok{color:var(--ok);font-weight:600}
 a.dl{display:inline-block;background:var(--ok);color:#fff;text-decoration:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13.5px}
+.x{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--bd);background:var(--chip);color:var(--mu);cursor:pointer;font-size:13px;line-height:1;transition:.15s}
+.x:hover{background:var(--er);border-color:var(--er);color:#fff}
 footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
 </style>
 </head>
@@ -70,7 +72,9 @@ footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
  <p class="lbl">Quality</p>
  <div class="seg" id="quals"><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip on" data-q="high">High</button></div>
  <label class="opt"><input type="checkbox" id="fast" checked> Smart fast mode: skip re-encoding when the video is already compatible</label>
- <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="folder" title="Pick a folder: results are saved back into it automatically">📁 Open folder</button><button class="sec" id="clear">Clear</button></div>
+ <label class="opt"><input type="checkbox" id="beside" checked> Save results next to the original files (Chrome/Edge asks once for the folder)</label>
+ <label class="opt"><input type="checkbox" id="skipex" checked> Skip files that already have a converted version in that folder</label>
+ <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
  <p id="msg">The conversion engine (about 30 MB) downloads on first use, then it is cached.</p>
  <pre id="log"></pre>
 </div>
@@ -114,25 +118,33 @@ function args(ext,q){const p=Q[q];switch(ext){
 const fmtSize=b=>b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB";
 function render(){const l=$("list");l.hidden=!files.length;l.innerHTML="";
  files.forEach(f=>{const d=document.createElement("div");d.className="file";
-  d.innerHTML=`<div class="ico">${f.file.type.startsWith("audio")?"🎵":"🎞️"}</div><div class="mid"><div class="name"></div><div class="meta"></div><div class="bar"><i></i></div></div><div class="st"></div>`;
+  d.innerHTML=`<div class="ico">${f.file.type.startsWith("audio")?"🎵":"🎞️"}</div><div class="mid"><div class="name"></div><div class="meta"></div><div class="bar"><i></i></div></div><div class="st"></div><button class="x" title="Remove from list" aria-label="Remove">✕</button>`;
   d.querySelector(".name").textContent=f.file.name;
+  d.querySelector(".x").onclick=()=>{if(busy){$("msg").textContent="Wait for the conversion to finish, then remove files.";return}files.splice(files.indexOf(f),1);render()};
   d.querySelector(".meta").textContent=fmtSize(f.file.size);
   f.el=d;l.appendChild(d);setSt(f,f.status||"Ready",f.cls);if(f.html)d.querySelector(".st").innerHTML=f.html;setBar(f,f.p||0)});
  $("go").disabled=busy||!files.length}
 function setSt(f,t,c=""){f.status=t;f.cls=c;f.html=null;const s=f.el.querySelector(".st");s.className="st "+c;s.textContent=t}
 function setBar(f,p){f.p=p;f.el.querySelector(".bar i").style.width=(p*100).toFixed(1)+"%"}
-const add=list=>{for(const file of list)files.push({file});render()};
-$("drop").onclick=()=>$("pick").click();
+const add=list=>{for(const it of list){const file=it.file||it;
+  if(!files.some(x=>x.file.name===file.name&&x.file.size===file.size&&x.file.lastModified===file.lastModified))files.push(it.file?it:{file})}render()};
+const exists=async(d,n)=>{try{await d.getFileHandle(n);return true}catch(e){return false}};
+let saveDir=null;
+$("drop").onclick=async()=>{
+ if(!window.showOpenFilePicker){$("pick").click();return}
+ try{const hs=await showOpenFilePicker({multiple:true,id:"mediaconvert",types:[{description:"Video and audio",accept:{
+  "video/*":[".mp4",".m4v",".mov",".mkv",".avi",".wmv",".flv",".ts",".m2ts",".3gp",".webm",".mpg",".mpeg"],
+  "audio/*":[".mp3",".wav",".flac",".aac",".m4a",".ogg",".opus",".wma",".aiff"]}}]});
+  add(await Promise.all(hs.map(async h=>({file:await h.getFile(),handle:h}))))}catch(e){}};
 $("pick").onchange=e=>{add(e.target.files);e.target.value=""};
 ["dragover","dragenter"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.add("over")}));
 ["dragleave","drop"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.remove("over")}));
-$("drop").addEventListener("drop",e=>add(e.dataTransfer.files));
-$("folder").onclick=async()=>{
- if(!window.showDirectoryPicker){alert("Saving into the source folder needs Chrome or Edge on a desktop computer.");return}
- try{const dir=await showDirectoryPicker({mode:"readwrite"});
-  const ok=/\.(mp4|m4v|mov|mkv|avi|wmv|flv|ts|m2ts|3gp|webm|mpg|mpeg|mp3|wav|flac|aac|m4a|ogg|opus|wma|aiff)$/i;
-  let n=0;for await(const[name,h]of dir.entries()){if(h.kind==="file"&&ok.test(name)){files.push({file:await h.getFile(),dir});n++}}
-  $("msg").textContent=n?n+" file(s) added. Results will be saved into this same folder.":"No media files found in that folder.";render()}catch(e){}};
+$("drop").addEventListener("drop",async e=>{
+ const its=[...e.dataTransfer.items].filter(i=>i.kind==="file"),fl=[...e.dataTransfer.files];
+ const hs=its.map(i=>i.getAsFileSystemHandle?i.getAsFileSystemHandle():Promise.resolve(null)),out=[];
+ for(let i=0;i<its.length;i++){let h=null;try{h=await hs[i]}catch(_){}
+  if(h&&h.kind==="file")out.push({file:await h.getFile(),handle:h});else if(fl[i])out.push({file:fl[i]})}
+ add(out)});
 $("clear").onclick=()=>{if(!busy){files=[];render()}};
 
 // ---- engine
@@ -169,9 +181,16 @@ async function run(inName,outName,a){logBuf.length=0;let code;
 
 $("go").onclick=async()=>{
  busy=true;$("go").disabled=true;const ext=fmt,q=qual;
+ if($("beside").checked&&!saveDir&&window.showDirectoryPicker){const first=files.find(f=>f.handle&&!f.done);
+  if(first){try{saveDir=await showDirectoryPicker({mode:"readwrite",id:"mediaconvert-save",startIn:first.handle})}catch(e){}}}
  try{await loadEngine()}catch(e){$("msg").textContent="Could not start the engine ("+e.message+"). Reload and try again.";$("log").style.display="block";busy=false;render();return}
  const{fetchFile}=FFmpegUtil,isMedia=["mp4","mov","mkv"].includes(ext);
  for(let i=0;i<files.length;i++){const f=files[i];if(f.done)continue;
+  let tdir=null;
+  if(f.handle&&saveDir){try{const path=await saveDir.resolve(f.handle);if(path){let d=saveDir;for(const seg of path.slice(0,-1))d=await d.getDirectoryHandle(seg);tdir=d}}catch(e){}}
+  f.tdir=tdir;
+  if(tdir&&$("skipex").checked){const cand=f.file.name.replace(/\.[^.]+$/,"")+"."+ext;
+   if(cand!==f.file.name&&await exists(tdir,cand)){f.done=true;setBar(f,1);setSt(f,"Skipped: "+cand+" already exists","ok");continue}}
   const inName="in_"+i+"."+(f.file.name.split(".").pop()||"bin"),outName="out_"+i+"."+ext;
   const onP=({progress})=>{if(progress>=0&&progress<=1)setBar(f,progress)};
   try{
@@ -190,9 +209,8 @@ $("go").onclick=async()=>{
    if(!data)throw new Error(tail());
    const url=URL.createObjectURL(new Blob([data.buffer])),base=f.file.name.replace(/\.[^.]+$/,"");
    setBar(f,1);f.done=true;let saved=null;
-   if(f.dir){try{const has=async n=>{try{await f.dir.getFileHandle(n);return true}catch(e){return false}};
-    let name=base+"."+ext,k=1;while(await has(name))name=base+" (converted"+(k>1?" "+k:"")+")."+ext,k++;
-    const w=await(await f.dir.getFileHandle(name,{create:true})).createWritable();await w.write(data);await w.close();saved=name}catch(e){}}
+   if(f.tdir){try{let name=base+"."+ext,k=1;while(await exists(f.tdir,name))name=base+" (converted"+(k>1?" "+k:"")+")."+ext,k++;
+    const w=await(await f.tdir.getFileHandle(name,{create:true})).createWritable();await w.write(data);await w.close();saved=name}catch(e){}}
    if(saved){f.html=null;setSt(f,"Saved in folder: "+saved,"ok")}
    else{f.html=`<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext.toUpperCase()}</a>`;f.el.querySelector(".st").innerHTML=f.html}
    f.el.querySelector(".meta").textContent=fmtSize(f.file.size)+" → "+fmtSize(data.length);
