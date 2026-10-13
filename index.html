@@ -1,244 +1,569 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="author" content="Vinayak Benake">
-<meta name="theme-color" content="#6d5efc">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MediaConvert by Vinayak Benake</title>
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12151a" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Daily Work Tracker</title>
+<!-- GOOGLE OAUTH CONFIGURATION: Replace the placeholder below with your Web application Client ID. -->
+<script>
+window.WORK_TRACKER_GOOGLE_CLIENT_ID = "947933671489-t9t06c8nmlulj1775st212ep8nso0qfm.apps.googleusercontent.com";
+</script>
 <style>
-:root{--bg:#f4f5fb;--card:#fff;--tx:#14161f;--mu:#6b7080;--bd:#e3e5ef;--ac:#6d5efc;--ac2:#22d3ee;--ok:#16a34a;--er:#e11d48;--chip:#eef0fb}
-@media(prefers-color-scheme:dark){:root{--bg:#0d0f17;--card:#161926;--tx:#eceefa;--mu:#8e93a8;--bd:#262a3d;--chip:#1e2235}}
+:root{color-scheme:light;--bg:#f5f6f8;--surface:#ffffff;--surface2:#eef0f3;--sunken:#f6f7f9;--line:#e3e6eb;--text:#1d2330;--muted:#687083;--accent:#3f6fb5;--accent-ink:#fff;--accent-soft:rgba(63,111,181,.1);--bid:#6f93cc;--actual:#3f9c86;--green:#3f9c86;--orange:#b9791f;--red:#c9485b;--danger-bg:#fbeff1;--danger-line:#efccd2;--danger-ink:#a63347;--shadow:0 1px 2px rgba(20,28,45,.05),0 6px 18px -10px rgba(20,28,45,.12);--ring:0 0 0 3px rgba(63,111,181,.2)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#12151a;--surface:#1a1e25;--surface2:#232831;--sunken:#151920;--line:#2a303a;--text:#e7eaef;--muted:#8a92a1;--accent:#7aa2e3;--accent-ink:#0f1620;--accent-soft:rgba(122,162,227,.13);--bid:#6b8fcf;--actual:#5dbfa6;--green:#5dbfa6;--orange:#d9a55b;--red:#e5788a;--danger-bg:rgba(229,120,138,.1);--danger-line:rgba(229,120,138,.3);--danger-ink:#f0a0ad;--shadow:0 1px 2px rgba(0,0,0,.25),0 8px 22px -12px rgba(0,0,0,.5);--ring:0 0 0 3px rgba(122,162,227,.25)}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){color-scheme:dark;--bg:#12151a;--surface:#1a1e25;--surface2:#232831;--sunken:#151920;--line:#2a303a;--text:#e7eaef;--muted:#8a92a1;--accent:#7aa2e3;--accent-ink:#0f1620;--accent-soft:rgba(122,162,227,.13);--bid:#6b8fcf;--actual:#5dbfa6;--green:#5dbfa6;--orange:#d9a55b;--red:#e5788a;--danger-bg:rgba(229,120,138,.1);--danger-line:rgba(229,120,138,.3);--danger-ink:#f0a0ad;--shadow:0 1px 2px rgba(0,0,0,.25),0 8px 22px -12px rgba(0,0,0,.5);--ring:0 0 0 3px rgba(122,162,227,.25)}}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 400px at 10% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent),radial-gradient(700px 400px at 100% 0,color-mix(in srgb,var(--ac2) 16%,transparent),transparent),var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:32px 16px}
-.wrap{max-width:720px;margin:0 auto}
-h1{font-size:30px;margin:0;letter-spacing:-.5px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--mu);margin:4px 0 22px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(20,20,60,.06)}
-#drop{border:2px dashed var(--bd);border-radius:14px;padding:34px 16px;text-align:center;cursor:pointer;color:var(--mu);transition:.2s}
-#drop:hover,#drop.over{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent);color:var(--ac)}
-#drop svg{width:42px;height:42px;stroke:currentColor;fill:none;stroke-width:1.6;margin-bottom:6px}
-#drop b{display:block;color:var(--tx);font-size:16px}
-.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);margin:0 0 8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.chip{border:1px solid var(--bd);background:var(--chip);color:var(--tx);padding:7px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer;transition:.15s}
-.chip:hover{border-color:var(--ac)}
-.chip.on{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 40%,transparent)}
-.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:16px}
-.seg .chip{border:0;background:none;border-radius:9px}
-.seg .chip.on{background:linear-gradient(135deg,var(--ac),#8b5cf6);color:#fff;box-shadow:0 4px 14px color-mix(in srgb,var(--ac) 40%,transparent)}
-.opt{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:13.5px;margin-bottom:14px;cursor:pointer}
-.opt input{accent-color:var(--ac);width:16px;height:16px}
-.btns{display:flex;gap:10px}
-button.go{flex:1;padding:13px;border:0;border-radius:12px;font:inherit;font-weight:600;font-size:16px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--ac),#8b5cf6);box-shadow:0 8px 22px color-mix(in srgb,var(--ac) 40%,transparent);transition:.15s}
-button.go:hover:not(:disabled){transform:translateY(-1px)}
-button.go:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
-button.sec{padding:13px 18px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
-#msg{color:var(--mu);font-size:13px;margin:12px 0 0}
-#log{display:none;max-height:110px;overflow:auto;font-size:11px;color:var(--mu);margin:8px 0 0;white-space:pre-wrap}
-.file{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--bd)}
-.file:first-of-type{border-top:0}
-.ico{width:40px;height:40px;border-radius:11px;background:var(--chip);display:grid;place-items:center;font-size:19px;flex:none}
-.mid{flex:1;min-width:0}
-.name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
-.meta{font-size:12.5px;color:var(--mu)}
-.bar{height:5px;background:var(--bd);border-radius:3px;margin-top:7px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .2s}
-.st{font-size:13px;color:var(--mu);text-align:right;max-width:210px}
-.st.er{color:var(--er)}.st.ok{color:var(--ok);font-weight:600}
-a.dl{display:inline-block;background:var(--ok);color:#fff;text-decoration:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13.5px}
-.x{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--bd);background:var(--chip);color:var(--mu);cursor:pointer;font-size:13px;line-height:1;transition:.15s}
-.x:hover{background:var(--er);border-color:var(--er);color:#fff}
-footer{text-align:center;color:var(--mu);font-size:12.5px;margin-top:22px}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px/1.5 Manrope,Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:9px 14px;font-weight:600;transition:background .15s,border-color .15s,transform .1s}
+button:hover{background:var(--surface2)}button:active{transform:scale(.98)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}button.primary:hover{background:var(--accent);filter:brightness(1.07)}
+button.danger{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}button.danger:hover{filter:brightness(.97)}
+button.small{padding:5px 10px;font-size:12px;border-radius:8px}
+button.icon-btn{padding:0;width:36px;height:36px;border-radius:10px;color:var(--muted)}button.icon-btn:hover{color:var(--text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg.ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{max-width:1220px;margin:auto;padding:0 22px 44px}
+.topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;margin:0 -22px 22px;padding:14px 22px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}.logo svg{width:19px;height:19px;stroke-width:2.2}
+.brand h1{font-size:18px;line-height:1.15;margin:0;letter-spacing:-.02em;font-weight:750}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-control{display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:2px 4px 2px 10px;color:var(--muted)}
+.date-control input{background:transparent;border:0;color:var(--text);padding:6px 4px;outline:none;font-weight:600}
+.date-control button{border:0;background:transparent;padding:0;width:28px;height:28px;border-radius:8px;color:var(--muted)}.date-control button:hover{background:var(--surface2);color:var(--text)}
+.date-control button.today{width:auto;padding:0 10px;font-size:12px;color:var(--accent)}
+.conn{width:100%;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.conn::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--orange)}
+h2{font-size:16px;margin:0 0 15px;font-weight:700;letter-spacing:-.01em}.sub{color:var(--muted);font-size:12px}
+.notice{border-color:var(--accent)!important;background:var(--accent-soft)!important;margin-bottom:18px}
+.notice a{color:var(--accent);font-weight:600;text-decoration:none}.notice a:hover{text-decoration:underline}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.stat,.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.stat{padding:18px}.stat-top{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;font-weight:600}
+.stat-icon{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.stat-value{font-size:30px;font-weight:750;letter-spacing:-.03em;margin:14px 0 2px;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat-foot{font-size:12px;color:var(--muted)}.stat-foot.good{color:var(--green)}.stat-foot.warn{color:var(--orange)}
+.layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:16px;align-items:start}
+.panel{padding:22px;margin-bottom:16px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.panel-head h2{margin:0}.panel-head .sub{margin-top:3px}
+.prompt-box{width:100%;min-height:110px;resize:vertical;background:var(--sunken);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--text);outline:none;line-height:1.55}
+.prompt-box:focus,input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:var(--ring)}
+.hint,.paste-hint{font-size:12px;color:var(--muted);margin:8px 0 12px}
+.button-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.preview{display:none;margin-top:14px;padding:12px 14px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:12px}.preview.show{display:block}.preview strong{display:block;margin-bottom:4px}.preview p{margin:3px 0;color:var(--muted);font-size:12.5px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);outline:none;min-width:0}
+.field textarea{min-height:72px;resize:vertical}.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.chart-wrap{height:250px;position:relative}.chart-wrap canvas{width:100%;height:100%;display:block}
+.chart-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:12px}.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.entry{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--sunken)}
+.entry-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.entry-title{font-weight:700}.entry-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.hours{white-space:nowrap;text-align:right;font-size:12px;color:var(--muted)}.hours b{font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
+.entry-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.entry-note{font-size:12.5px;color:var(--muted);margin-top:8px}.entry-note strong{color:var(--text)}
+.empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:12px}
+.month-row input{background:var(--surface);border:1px solid var(--line);color:var(--text);padding:7px 10px;border-radius:10px}
+.progress,.balance-bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}.progress{margin-top:14px}
+.progress span{display:block;height:100%;background:var(--accent);border-radius:99px;width:0;transition:width .4s ease}
+.balance-bar{margin:12px 0 8px}.balance-bar span{display:block;height:100%;background:var(--green);border-radius:99px;width:0;transition:width .4s ease}
+.efficiency{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;color:var(--muted)}.efficiency strong{color:var(--text)}
+.balance-card{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--sunken)}
+.balance-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.balance-value{font-weight:750;font-size:17px;font-variant-numeric:tabular-nums}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--text);color:var(--bg);padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.25s;z-index:20}.toast.show{opacity:1;transform:translate(-50%,0)}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:16px}
+.idle-field{display:none}.idle-field.show{display:flex}
+.shot-preview{display:none;max-width:100%;max-height:220px;margin:12px 0;border-radius:12px;border:1px solid var(--line)}
+.ocr-status{font-size:12px;color:var(--muted);margin-top:10px;white-space:pre-wrap}.ocr-status:empty{display:none}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}
+@media(max-width:520px){.app{padding:0 12px 32px}.topbar{margin:0 -12px 16px;padding:12px}.grid{gap:10px}.stat{padding:14px}.stat-value{font-size:24px}.panel{padding:16px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.brand h1{font-size:17px}.date-control{width:100%;justify-content:space-between}.top-actions{width:100%}.top-actions>button:not(.icon-btn){flex:1}.conn{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/*gradient-pass*/
+:root{--g1:#4a78d0;--g2:#36a590;--tint1:rgba(74,120,208,.13);--tint2:rgba(54,165,144,.11);--tint3:rgba(139,123,216,.09)}
+:root[data-theme="dark"]{--g1:#4469bd;--g2:#2c9484;--tint1:rgba(68,105,189,.24);--tint2:rgba(44,148,132,.17);--tint3:rgba(139,123,216,.14)}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){--g1:#4469bd;--g2:#2c9484;--tint1:rgba(68,105,189,.24);--tint2:rgba(44,148,132,.17);--tint3:rgba(139,123,216,.14)}}
+body{background-color:var(--bg);background-image:radial-gradient(700px 420px at 0% -8%,var(--tint1),transparent 70%),radial-gradient(620px 420px at 100% 0%,var(--tint2),transparent 70%),radial-gradient(700px 480px at 55% 108%,var(--tint3),transparent 70%);background-attachment:fixed}
+.topbar{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.logo{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;box-shadow:0 6px 16px -6px var(--g1)}
+button.primary{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:transparent;color:#fff;box-shadow:0 6px 16px -8px var(--g1)}
+button.primary:hover{background:linear-gradient(135deg,var(--g1),var(--g2));filter:brightness(1.08)}
+.stat,.panel{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 100%,transparent),color-mix(in srgb,var(--surface) 92%,var(--g1)))}
+.stat{position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--bar,var(--g1))}
+.stat:nth-child(1){--bar:linear-gradient(90deg,#4a78d0,#6c93e0);--ic:#4a78d0}
+.stat:nth-child(2){--bar:linear-gradient(90deg,#8b7bd8,#a995ea);--ic:#8b7bd8}
+.stat:nth-child(3){--bar:linear-gradient(90deg,#36a590,#5cc4af);--ic:#36a590}
+.stat:nth-child(4){--bar:linear-gradient(90deg,#e0a14a,#efbf72);--ic:#d4922f}
+.stat .stat-icon{background:color-mix(in srgb,var(--ic) 15%,transparent);color:var(--ic)}
+.grid .stat:first-child{background:linear-gradient(140deg,var(--g1),var(--g2));border-color:transparent;color:#fff;box-shadow:0 18px 34px -20px var(--g1)}
+.grid .stat:first-child::before{display:none}
+.grid .stat:first-child::after{content:"";position:absolute;right:-36px;top:-46px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.13)}
+.grid .stat:first-child .stat-top,.grid .stat:first-child .stat-foot{color:rgba(255,255,255,.85)}
+.grid .stat:first-child .stat-icon{background:rgba(255,255,255,.2);color:#fff}
+.panel-head h2{display:flex;align-items:center;gap:9px}
+.panel-head h2::before{content:"";width:4px;height:16px;border-radius:3px;background:linear-gradient(180deg,var(--g1),var(--g2))}
+.tag{background:var(--accent-soft);color:var(--accent)}
+.entry{border-left:3px solid var(--g1)}
+.progress{background:color-mix(in srgb,var(--g1) 14%,transparent)}
+.progress span{background:linear-gradient(90deg,var(--g1),var(--g2))}
+.balance-bar{background:color-mix(in srgb,var(--g2) 16%,transparent)}
+.balance-bar span{background:linear-gradient(90deg,var(--g2),#6cd0b8)}
+.chart-legend .dot{border-radius:50%}
+.preview{background:linear-gradient(135deg,var(--accent-soft),color-mix(in srgb,var(--g2) 10%,transparent))}
+.history-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 14px}
+.jump{display:flex;align-items:center;gap:8px;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:2px 6px 2px 10px;color:var(--muted);font-size:12px;font-weight:600}
+.jump input{background:transparent;border:0;color:var(--text);padding:6px 4px;outline:none;font-weight:600;font-size:13px}
+.entry-date{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 10px 3px 8px;border-radius:999px;margin-bottom:8px}
+.entry-date svg{width:13px;height:13px}
+.report-text{min-height:290px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>MediaConvert</h1>
-<button class="sec" id="install" hidden style="margin:10px 0 0;padding:8px 14px">⬇ Install as app</button>
-<p class="sub">Convert video and audio in your browser. Private: files never leave your device.</p>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div><div><h1>Daily Work Tracker</h1><p>Plan clearly. Track honestly. Improve daily.</p></div></div>
+    <div class="top-actions">
+      <div class="date-control"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><button type="button" id="prevDayBtn" aria-label="Previous day" title="Previous day"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><input id="selectedDate" type="date" aria-label="Selected work date"><button type="button" id="nextDayBtn" aria-label="Next day" title="Next day"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" id="todayBtn" class="today">Today</button></div>
+      <button type="button" id="themeBtn" class="icon-btn" aria-label="Switch light or dark theme" title="Switch light / dark"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 010 18z" fill="currentColor"/></svg></button><button id="googleSignInBtn" class="primary">Continue with Google</button>
+      <button id="googleSignOutBtn" style="display:none">Sign out</button>
+      <button id="exportBtn">Export CSV</button><button id="clearDateBtn" class="danger">Clear date</button>
+    </div>
+    <div id="googleStatus" class="conn">Not connected to Google Drive · Local storage active</div>
+  </header>
 
-<div class="card">
- <div id="drop"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><b>Drop files here or click to browse</b>MOV, MKV, AVI, MP4, WebM, MP3, WAV, FLAC, M4A and more</div>
- <input id="pick" type="file" multiple hidden accept="video/*,audio/*,.mkv,.mov,.avi,.wmv,.flv,.ts,.3gp,.m4a,.flac,.opus,.ogg,.wma,.aiff,.hevc,.m2ts">
+  <section id="googleSetupNotice" class="panel notice">
+    <strong>Connect your Google Drive</strong>
+    <p class="sub" style="margin:6px 0 10px">Configure Google OAuth and enable the Google Drive API. Then add your OAuth Client ID in this HTML file. Until configured, entries remain in this browser.</p>
+    <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer">Open Google Cloud Console ↗</a>
+  </section>
+  <section class="grid" aria-label="Performance summary">
+    <article class="stat"><div class="stat-top"><span>Actual hours · selected date</span><span class="stat-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></div><div class="stat-value" id="dayActual">0.0h</div><div class="stat-foot" id="dayActualFoot">No hours logged yet</div></article>
+    <article class="stat"><div class="stat-top"><span>Bid hours · selected date</span><span class="stat-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span></div><div class="stat-value" id="dayBid">0.0h</div><div class="stat-foot" id="dayBidFoot">Estimated workload</div></article>
+    <article class="stat"><div class="stat-top"><span>Monthly actual</span><span class="stat-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span></div><div class="stat-value" id="monthActual">0.0h</div><div class="stat-foot" id="monthActualFoot">Across all logged tasks</div></article>
+    <article class="stat"><div class="stat-top"><span>Monthly bid</span><span class="stat-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span></div><div class="stat-value" id="monthBid">0.0h</div><div class="stat-foot" id="monthDiffFoot">Actual vs. estimate</div></article>
+  </section>
+
+  <div class="layout">
+    <main>
+      <section class="panel">
+        <div class="panel-head"><div><h2>Quick log with a prompt</h2><div class="sub">Describe the work in your own words. Review the parsed details before saving.</div></div><span class="stat-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></span></div>
+        <textarea class="prompt-box" id="promptInput" aria-label="Quick log prompt. Type work details or paste a screenshot with Ctrl+V" placeholder="Type your work details, or paste a screenshot here with Ctrl+V… Example: Client Acme, project Summer Ad, asset character walk cycle, bid 3.5 hours, actual 4 hours."></textarea>
+        <div class="paste-hint">⌘/Ctrl + V: paste a screenshot directly into this box. Text is extracted into the same prompt for review; you can also type or paste ordinary text here.</div>
+        <div class="hint">Understands phrases such as “bid 3.5h”, “spent 4 hours”, “asset walk cycle”, “client Acme” and “project Summer Ad”. You can edit every field after parsing.</div>
+        <input id="screenshotFile" type="file" accept="image/*" aria-label="Upload screenshot" hidden>
+        <div class="button-row"><button class="primary" id="parseBtn">Parse prompt</button><button id="uploadScreenshotBtn" type="button">Upload screenshot</button><button id="clearPromptBtn">Clear</button></div>
+        <img id="screenshotPreview" class="shot-preview" alt="Pasted screenshot preview">
+        <div id="ocrStatus" class="ocr-status" aria-live="polite">Tip: paste a screenshot into the prompt box, or choose Upload screenshot.</div>
+        <div class="preview" id="parsePreview"><strong>Parsed successfully — check the fields below</strong><p id="previewText"></p></div>
+      </section>
+
+      <section class="panel" id="entryPanel">
+        <div class="panel-head"><div><h2 id="formTitle">Add a work entry</h2><div class="sub">One entry per task or asset.</div></div></div>
+        <form id="entryForm">
+          <div class="form-grid">
+            <div class="field"><label for="entryDate">Work date</label><input id="entryDate" type="date" required></div>
+            <div class="field"><label for="kind">Type</label><select id="kind"><option>Project work</option><option>Meeting</option><option>Training</option><option>Admin</option><option>Idle time</option><option>Leave</option><option>Other</option></select></div>
+            <div class="field"><label for="client">Client</label><input id="client" placeholder="Client name"></div>
+            <div class="field"><label for="project">Project</label><input id="project" placeholder="Project name"></div>
+            <div class="field"><label for="asset">Asset / task</label><input id="asset" placeholder="e.g. Walk cycle animation"></div>
+            <div class="field"><label for="workStatus">Work status</label><select id="workStatus"><option value="done">Done</option><option value="WIP">WIP (work in progress)</option><option value="review">In review</option><option value="on hold">On hold</option><option value="waiting for feedback">Waiting for feedback</option><option value="blocked">Blocked</option></select></div>
+            <div class="field"><label for="bidHours">Bid hours</label><input id="bidHours" type="number" min="0" step="0.25" placeholder="e.g. 3.5"></div>
+            <div class="field"><label for="actualHours" id="actualHoursLabel">Actual hours</label><input id="actualHours" type="number" min="0" max="8" step="0.25" required placeholder="e.g. 4"></div>
+            <div class="field full idle-field" id="idleReasonField"><label for="idleReason">Why were you idle? (required)</label><select id="idleReason"><option value="">Select a reason</option><option>Waiting for task assignment</option><option>Waiting for client feedback</option><option>Waiting for assets or files</option><option>Technical issue / software problem</option><option>Blocked by another team</option><option>Meeting or coordination delay</option><option>No tasks assigned</option><option>Other</option></select><textarea id="idleDetails" placeholder="Explain the reason (required for Other)"></textarea></div>
+            <div class="field full"><label for="notes">Notes</label><textarea id="notes" placeholder="What did you do? Any blockers or outcomes?"></textarea></div>
+          </div>
+          <div class="form-actions"><button type="button" id="cancelEditBtn" style="display:none">Cancel edit</button><button type="submit" class="primary" id="saveBtn">Add entry</button></div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><h2>Daily performance</h2><div class="sub">Bid hours compared with actual hours, by day of the selected month.</div></div><div class="month-row"><input type="month" id="chartMonth" aria-label="Chart month"></div></div>
+        <div class="chart-wrap"><canvas id="performanceChart" aria-label="Daily bid and actual hours chart" role="img"></canvas></div>
+        <div class="chart-legend"><span><i class="dot" style="background:var(--bid)"></i>Bid hours</span><span><i class="dot" style="background:var(--actual)"></i>Actual hours</span></div>
+      </section>
+    </main>
+
+    <aside>
+      <section class="panel" id="reportPanel">
+        <div class="panel-head"><div><h2>Daily report message</h2><div class="sub" id="reportSub">Built from the selected date. Copy and paste into your group.</div></div></div>
+        <div class="form-grid">
+          <div class="field"><label for="reportName">Your name</label><input id="reportName" placeholder="Your name" autocomplete="name"></div>
+          <div class="field"><label for="reportDependency">Dependency</label><input id="reportDependency" placeholder="N/A"></div>
+          <div class="field full"><label for="reportText">Message</label><textarea id="reportText" class="report-text" spellcheck="false" placeholder="Add work entries for this date and your message will appear here."></textarea></div>
+        </div>
+        <div class="form-actions"><button type="button" class="primary" id="copyReportBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>Copy message</button></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>Monthly efficiency</h2><div class="sub" id="monthLabel">Current month</div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:end;gap:12px"><div><div class="sub">Actual / bid</div><div class="stat-value" id="efficiencyValue" style="font-size:30px;margin:4px 0">—</div></div><div style="text-align:right"><div class="sub">Hour difference</div><strong id="monthDifference">0.0h</strong></div></div>
+        <div class="progress"><span id="efficiencyBar"></span></div>
+        <div class="efficiency"><span>Actual hours against estimate</span><strong id="efficiencyStatus">No data yet</strong></div>
+        <p class="sub" style="margin:13px 0 0">Efficiency here is task-work hours ÷ bid hours. Idle time is tracked separately and is not counted as productive task work.</p><div class="balance-card"><div class="balance-top"><div><strong>Daily 8-hour balance</strong><div class="sub">Work + idle hours for selected date</div></div><div class="balance-value" id="dailyBalance">0.0 / 8.0h</div></div><div class="balance-bar"><span id="dailyBalanceBar"></span></div><div class="sub" id="dailyRemaining">8.0h remaining</div><div class="sub" id="dailyBreakdown" style="margin-top:5px">Task work 0.0h · Idle 0.0h</div></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2 id="historyTitle">Entries for selected date</h2><div class="sub">Use Edit to change any task, including older entries.</div></div><div class="button-row"><button type="button" class="small" id="toggleAllEntriesBtn">Show all tasks</button><span class="tag" id="entryCount">0 entries</span></div></div>
+        <div class="history-tools"><label class="jump"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Jump to date</span><input type="date" id="jumpDate" aria-label="Jump to date"></label><button type="button" class="small" id="jumpTodayBtn">Today</button></div>
+        <div class="history-list" id="historyList"><div class="empty">Nothing logged for this date yet.</div></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>Monthly totals by project</h2><div class="sub">Based on the chart month.</div></div></div>
+        <div id="projectTotals" class="history-list"><div class="empty">No project hours yet.</div></div>
+      </section>
+    </aside>
+  </div>
+  <div class="footer">Your data stays in this browser using local storage. Export CSV regularly as a backup.</div>
 </div>
-
-<div class="card">
- <p class="lbl">Convert to</p>
- <div class="chips" id="fmts"></div>
- <p class="lbl">Quality</p>
- <div class="seg" id="quals"><button class="chip on" data-q="orig">Original</button><button class="chip" data-q="low">Small</button><button class="chip" data-q="medium">Balanced</button><button class="chip" data-q="high">High</button></div>
- <p class="meta" id="qhint" style="margin:-6px 0 14px"></p>
- <label class="opt"><input type="checkbox" id="beside" checked> Save results next to the original files (choose a parent folder once; Chrome remembers it)</label>
- <label class="opt"><input type="checkbox" id="skipex" checked> Skip files that already have a converted version in that folder</label>
- <div class="btns"><button class="go" id="go" disabled>Convert</button><button class="sec" id="clear">Clear</button></div>
- <p id="msg">The conversion engine (about 30 MB) downloads on first use, then it is cached.</p>
- <pre id="log"></pre>
-</div>
-
-<div class="card" id="list" hidden></div>
-<footer>Created by <b>Vinayak Benake</b><br>Powered by FFmpeg (WebAssembly). Large or unusual files may take a while.</footer>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-const $=id=>document.getElementById(id);
-const FF_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd";
-const CORE_BASE="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-const VID=["mp4","mov","mkv","webm","avi","gif"],AUD=["mp3","wav","flac","aac","m4a","ogg","opus"];
-let fmt="mp4",qual="orig",files=[],ffmpeg=null,busy=false,logBuf=[];
+(() => {
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'dailyWorkTracker.entries.v1';
+  const today = new Date();
+  const dateString = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const monthString = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  let entries = loadEntries();
+  let editingId = null;
+  let parsed = null;
+  let screenshotImage = null;
+  let googleTokenClient = null;
+  let googleAccessToken = null;
+  let driveFileId = null;
+  let driveReady = false;
+  let saveTimer = null;
+  let showAllEntries = false;
+  const DRIVE_FILE_NAME = 'DailyWorkTracker-data.json';
+  function googleConfigured(){return window.WORK_TRACKER_GOOGLE_CLIENT_ID && !window.WORK_TRACKER_GOOGLE_CLIENT_ID.includes('PASTE_');}
+  function setGoogleStatus(s){$('googleStatus').textContent=s;}
+  async function driveFetch(url, options={}){
+    const response=await fetch(url,{...options,headers:{Authorization:'Bearer '+googleAccessToken,...(options.headers||{})}});
+    if(!response.ok) throw new Error('Google Drive returned '+response.status+'; please sign in again.');
+    if(response.status===204)return null;
+    return response.json();
+  }
+  async function syncFromDrive(){
+    setGoogleStatus('Loading your Google Drive data…');
+    const q=encodeURIComponent("name='"+DRIVE_FILE_NAME+"' and trashed=false");
+    const found=await driveFetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime)&spaces=drive');
+    if(found.files&&found.files.length){
+      found.files.sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));
+      driveFileId=found.files[0].id;
+      const response=await fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{Authorization:'Bearer '+googleAccessToken}});
+      if(!response.ok)throw new Error('Could not download your tracker file from Drive.');
+      const data=await response.json(); entries=Array.isArray(data.entries)?data.entries:[];
+    }else{
+      const meta=await driveFetch('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:DRIVE_FILE_NAME,mimeType:'application/json'})});
+      driveFileId=meta.id; entries=[]; await saveToDrive();
+    }
+    localStorage.setItem(STORAGE_KEY+'.'+(window.googleTrackerEmail||'account'),JSON.stringify(entries));
+    driveReady=true; $('googleSignInBtn').style.display='none'; $('googleSignOutBtn').style.display='inline-block'; $('googleSetupNotice').style.display='none';
+    setGoogleStatus('Google Drive connected · '+(window.googleTrackerEmail||'Google account')); render();
+  }
+  async function saveToDrive(){
+    if(!googleAccessToken||!driveReady||!driveFileId)return;
+    try{
+      const body=JSON.stringify({version:1,updatedAt:new Date().toISOString(),entries});
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{Authorization:'Bearer '+googleAccessToken,'Content-Type':'application/json'},body});
+      if(!res.ok)throw new Error('Drive save failed ('+res.status+').');
+      setGoogleStatus('Saved to Google Drive · '+(window.googleTrackerEmail||'Google account'));
+    }catch(e){setGoogleStatus('Google Drive save failed: '+e.message);toast('Drive save failed. Export a CSV backup.');}
+  }
+  function googleSignIn(){
+    if(!googleConfigured()){alert('Google sign-in is not configured. Follow README.md and replace PASTE_GOOGLE_OAUTH_CLIENT_ID_HERE in index.html.');return;}
+    if(!window.google?.accounts?.oauth2){alert('Google sign-in is loading. Please try again in a moment.');return;}
+    googleTokenClient=google.accounts.oauth2.initTokenClient({client_id:window.WORK_TRACKER_GOOGLE_CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.file email profile',callback:async response=>{
+      if(response.error){setGoogleStatus('Google sign-in failed: '+response.error);return;} googleAccessToken=response.access_token;
+      try{const u=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+googleAccessToken}}).then(r=>r.json());window.googleTrackerEmail=u.email||'';await syncFromDrive();}
+      catch(e){driveReady=false;setGoogleStatus('Could not connect Drive: '+e.message);alert('Google Drive connection failed. Check API and OAuth settings in README.md.');}
+    }}); googleTokenClient.requestAccessToken({prompt:'consent'});
+  }
+  function googleSignOut(){if(googleAccessToken&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(googleAccessToken,()=>{});googleAccessToken=null;driveFileId=null;driveReady=false;entries=[];window.googleTrackerEmail='';$('googleSignInBtn').style.display='inline-block';$('googleSignOutBtn').style.display='none';$('googleSetupNotice').style.display='block';setGoogleStatus('Signed out · Sign in to load your Drive data');render();}
 
-// ---- format chips
-$("fmts").innerHTML=[...VID.map(e=>[e,"v"]),...AUD.map(e=>[e,"a"])].map(([e,k])=>`<button class="chip${e===fmt?" on":""}" data-f="${e}">${e.toUpperCase()}</button>`).join("");
-$("fmts").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;fmt=b.dataset.f;document.querySelectorAll("#fmts .chip").forEach(c=>c.classList.toggle("on",c===b))};
-const HINT={orig:"Original: keeps the video untouched when it is already compatible. Fastest, same quality and size.",low:"Small: re-encodes, caps height at 720p. Much smaller file, lower quality.",medium:"Balanced: re-encodes, caps height at 1080p. Good quality, smaller file.",high:"High: re-encodes at full resolution. Best quality, slower."};
-const setHint=()=>{$("qhint").textContent=HINT[qual]};
-$("quals").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;qual=b.dataset.q;document.querySelectorAll("#quals .chip").forEach(c=>c.classList.toggle("on",c===b));setHint()};
-setHint();
 
-// ---- ffmpeg arguments
-const Q={low:{crf:"34",abr:"96k",vp9:"40",vb:"700k",h:"720",gif:"fps=10,scale=360:-1:flags=lanczos"},
- medium:{crf:"27",abr:"160k",vp9:"33",vb:"2M",h:"1080",gif:"fps=12,scale=480:-1:flags=lanczos"},
- high:{crf:"20",abr:"256k",vp9:"28",vb:"6M",h:"",gif:"fps=15,scale=640:-1:flags=lanczos"}};
-const MAPS=["-map","0:v:0?","-map","0:a:0?","-sn","-dn"];          // keep only first video + audio (drops iPhone data tracks)
-const vf=q=>(Q[q].h?"scale=-2:trunc(min(ih\\,"+Q[q].h+")/2)*2":"scale=trunc(iw/2)*2:trunc(ih/2)*2")+",format=yuv420p";    // even size + 8-bit 4:2:0 for compatibility
-const x264=q=>["-c:v","libx264","-preset","ultrafast","-crf",Q[q].crf,"-vf",vf(q)];
-function args(ext,q){const p=Q[q];switch(ext){
- case"mp4":case"mov":case"mkv":return[...MAPS,...x264(q),"-c:a","aac","-b:a",p.abr,...(ext==="mp4"?["-movflags","+faststart"]:[])];
- case"webm":return[...MAPS,"-c:v","libvpx","-crf",p.vp9,"-b:v",p.vb,"-deadline","realtime","-cpu-used","8","-vf",vf(q),"-c:a","libvorbis"];
- case"avi":return[...MAPS,"-c:v","mpeg4","-qscale:v",q==="high"?"2":q==="medium"?"5":"9","-vf",vf(q),"-c:a","libmp3lame","-b:a",p.abr];
- case"gif":return["-map","0:v:0","-vf",p.gif,"-an","-loop","0"];
- case"mp3":return["-map","0:a:0","-vn","-c:a","libmp3lame","-b:a",p.abr];
- case"wav":return["-map","0:a:0","-vn","-c:a","pcm_s16le"];
- case"flac":return["-map","0:a:0","-vn","-c:a","flac"];
- case"aac":case"m4a":return["-map","0:a:0","-vn","-c:a","aac","-b:a",p.abr];
- case"ogg":return["-map","0:a:0","-vn","-c:a","libvorbis","-b:a",p.abr];
- case"opus":return["-map","0:a:0","-vn","-c:a","libopus","-b:a",p.abr];}return[]}
+  $('selectedDate').value = dateString(today);
+  $('entryDate').value = dateString(today);
+  $('chartMonth').value = monthString(today);
 
-// ---- UI
-const fmtSize=b=>b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB";
-function render(){const l=$("list");l.hidden=!files.length;l.innerHTML="";
- files.forEach(f=>{const d=document.createElement("div");d.className="file";
-  d.innerHTML=`<div class="ico">${f.file.type.startsWith("audio")?"🎵":"🎞️"}</div><div class="mid"><div class="name"></div><div class="meta"></div><div class="bar"><i></i></div></div><div class="st"></div><button class="x" title="Remove from list" aria-label="Remove">✕</button>`;
-  d.querySelector(".name").textContent=f.file.name;
-  d.querySelector(".x").onclick=()=>{if(busy){$("msg").textContent="Wait for the conversion to finish, then remove files.";return}files.splice(files.indexOf(f),1);render()};
-  d.querySelector(".meta").textContent=fmtSize(f.file.size);
-  f.el=d;l.appendChild(d);setSt(f,f.status||"Ready",f.cls);if(f.html)d.querySelector(".st").innerHTML=f.html;setBar(f,f.p||0)});
- $("go").disabled=busy||!files.length}
-function setSt(f,t,c=""){f.status=t;f.cls=c;f.html=null;const s=f.el.querySelector(".st");s.className="st "+c;s.textContent=t}
-function setBar(f,p){f.p=p;f.el.querySelector(".bar i").style.width=(p*100).toFixed(1)+"%"}
-const add=list=>{for(const it of list){const file=it.file||it;
-  if(!files.some(x=>x.file.name===file.name&&x.file.size===file.size&&x.file.lastModified===file.lastModified))files.push(it.file?it:{file})}render()};
-const exists=async(d,n)=>{try{await d.getFileHandle(n);return true}catch(e){return false}};
-let dirs=[];
-const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open("mediaconvert",1);r.onupgradeneeded=()=>r.result.createObjectStore("dirs",{autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
-async function loadDirs(){try{const db=await idb();return await new Promise(res=>{const q=db.transaction("dirs").objectStore("dirs").getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])})}catch(e){return[]}}
-async function storeDir(h){try{const db=await idb();db.transaction("dirs","readwrite").objectStore("dirs").add(h)}catch(e){}}
-async function findDir(handle){for(const d of dirs){try{const path=await d.resolve(handle);if(path)return{d,path}}catch(e){}}return null}
-$("drop").onclick=async()=>{
- if(!window.showOpenFilePicker){$("pick").click();return}
- try{const hs=await showOpenFilePicker({multiple:true,id:"mediaconvert",types:[{description:"Video and audio",accept:{
-  "video/*":[".mp4",".m4v",".mov",".mkv",".avi",".wmv",".flv",".ts",".m2ts",".3gp",".webm",".mpg",".mpeg"],
-  "audio/*":[".mp3",".wav",".flac",".aac",".m4a",".ogg",".opus",".wma",".aiff"]}}]});
-  add(await Promise.all(hs.map(async h=>({file:await h.getFile(),handle:h}))))}catch(e){}};
-$("pick").onchange=e=>{add(e.target.files);e.target.value=""};
-["dragover","dragenter"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.add("over")}));
-["dragleave","drop"].forEach(v=>$("drop").addEventListener(v,e=>{e.preventDefault();$("drop").classList.remove("over")}));
-$("drop").addEventListener("drop",async e=>{
- const its=[...e.dataTransfer.items].filter(i=>i.kind==="file"),fl=[...e.dataTransfer.files];
- const hs=its.map(i=>i.getAsFileSystemHandle?i.getAsFileSystemHandle():Promise.resolve(null)),out=[];
- for(let i=0;i<its.length;i++){let h=null;try{h=await hs[i]}catch(_){}
-  if(h&&h.kind==="file")out.push({file:await h.getFile(),handle:h});else if(fl[i])out.push({file:fl[i]})}
- add(out)});
-$("clear").onclick=()=>{if(!busy){files=[];render()}};
-
-// ---- engine
-async function loadEngine(){
- if(ffmpeg)return ffmpeg;
- const{FFmpeg}=FFmpegWASM;
- async function blobURL(url,mime,show){const r=await fetch(url);if(!r.ok)throw new Error("download failed ("+r.status+")");
-  const total=+r.headers.get("content-length")||32*1048576,rd=r.body.getReader(),ch=[];let got=0;
-  for(;;){const{done,value}=await rd.read();if(done)break;ch.push(value);got+=value.length;
-   if(show)$("msg").textContent="Downloading engine… "+Math.min(99,Math.round(got/total*100))+"%"}
-  return URL.createObjectURL(new Blob(ch,{type:mime}))}
- $("msg").textContent="Downloading engine… 0%";
- const classWorkerURL=await blobURL(`${FF_BASE}/814.ffmpeg.js`,"text/javascript");
- const wasmURL=await blobURL(`${CORE_BASE}/ffmpeg-core.wasm`,"application/wasm",true);
- let last;
- for(const dir of["esm","umd"]){try{
-  $("msg").textContent="Starting engine…";
-  const coreURL=await blobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/${dir}/ffmpeg-core.js`,"text/javascript");
-  const inst=new FFmpeg();
-  inst.on("log",({message})=>{logBuf.push(message);if(logBuf.length>400)logBuf.shift();const l=$("log");l.textContent+=message+"\n";l.scrollTop=l.scrollHeight});
-  await Promise.race([inst.load({classWorkerURL,coreURL,wasmURL}),new Promise((_,j)=>setTimeout(()=>j(new Error("engine start timed out")),45000))]);
-  ffmpeg=inst;$("msg").textContent="Engine ready.";return ffmpeg}catch(e){last=e}}
- throw last}
-
-// ---- conversion
-async function probe(inName){logBuf.length=0;await ffmpeg.exec(["-hide_banner","-i",inName]);
- const t=logBuf.join("\n");return{v:(t.match(/Video: (\w+)/)||[])[1],a:(t.match(/Audio: (\w+)/)||[])[1]}}
-const tail=()=>{const l=logBuf.filter(x=>x.trim()).slice(-2).join(" | ");return l?l.slice(0,160):"unsupported or corrupt file"};
-
-async function run(inName,outName,a){logBuf.length=0;let code;
- try{code=await ffmpeg.exec(["-y","-i",inName,...a,outName].map(String))}catch(e){code=1}
- if(code!==0)return null;
- try{const d=await ffmpeg.readFile(outName);return d.length>2048?d:null}catch(e){return null}}
-
-$("go").onclick=async()=>{
- busy=true;$("go").disabled=true;const ext=fmt,q=qual==="orig"?"high":qual;
- if($("beside").checked&&window.showDirectoryPicker){
-  if(!dirs.length)dirs=await loadDirs();
-  const missing=[],need=new Set();
-  for(const f of files){if(f.done||!f.handle)continue;const hit=await findDir(f.handle);if(hit)need.add(hit.d);else missing.push(f)}
-  if(missing.length){try{const d=await showDirectoryPicker({mode:"readwrite",id:"mediaconvert-save",startIn:missing[0].handle});dirs.push(d);storeDir(d)}catch(e){}}
-  for(const d of need){try{if(await d.queryPermission({mode:"readwrite"})!=="granted")await d.requestPermission({mode:"readwrite"})}catch(e){}}}
- try{await loadEngine()}catch(e){$("msg").textContent="Could not start the engine ("+e.message+"). Reload and try again.";$("log").style.display="block";busy=false;render();return}
- const{fetchFile}=FFmpegUtil,isMedia=["mp4","mov","mkv"].includes(ext);
- for(let i=0;i<files.length;i++){const f=files[i];if(f.done)continue;
-  let tdir=null;
-  if(f.handle&&dirs.length){try{const hit=await findDir(f.handle);
-   if(hit&&await hit.d.queryPermission({mode:"readwrite"})==="granted"){let d=hit.d;for(const seg of hit.path.slice(0,-1))d=await d.getDirectoryHandle(seg);tdir=d}}catch(e){}}
-  f.tdir=tdir;
-  if(tdir&&$("skipex").checked){const cand=f.file.name.replace(/\.[^.]+$/,"")+"."+ext;
-   if(cand!==f.file.name&&await exists(tdir,cand)){f.done=true;setBar(f,1);setSt(f,"Skipped: "+cand+" already exists","ok");continue}}
-  const inName="in_"+i+"."+(f.file.name.split(".").pop()||"bin"),outName="out_"+i+"."+ext;
-  const onP=({progress})=>{if(progress>=0&&progress<=1)setBar(f,progress)};
-  try{
-   setBar(f,0);ffmpeg.on("progress",onP);
-   await ffmpeg.writeFile(inName,await fetchFile(f.file));
-   let data=null;
-   if(qual==="orig"&&isMedia){
-    setSt(f,"Analyzing…");const p=await probe(inName);
-    const vCopy=p.v==="h264",aCopy=!p.a||["aac","mp3"].includes(p.a);
-    const a=[...MAPS,...(vCopy?["-c:v","copy"]:x264(q)),...(p.a?(aCopy?["-c:a","copy"]:["-c:a","aac","-b:a",Q[q].abr]):[]),...(ext==="mp4"?["-movflags","+faststart"]:[])];
-    setSt(f,vCopy?"Fast copy…":"Re-encoding video…");
-    data=await run(inName,outName,a);
-    if(!data&&vCopy)setSt(f,"Copy failed, re-encoding…");
-   }
-   if(!data){setSt(f,"Converting…");setBar(f,0);data=await run(inName,outName,args(ext,q))}
-   if(!data)throw new Error(tail());
-   const url=URL.createObjectURL(new Blob([data.buffer])),base=f.file.name.replace(/\.[^.]+$/,"");
-   setBar(f,1);f.done=true;let saved=null;
-   if(f.tdir){try{let name=base+"."+ext,k=1;while(await exists(f.tdir,name))name=base+" (converted"+(k>1?" "+k:"")+")."+ext,k++;
-    const w=await(await f.tdir.getFileHandle(name,{create:true})).createWritable();await w.write(data);await w.close();saved=name}catch(e){}}
-   if(saved){f.html=null;setSt(f,"Saved in folder: "+saved,"ok")}
-   else{f.html=`<a class="dl" download="${base}.${ext}" href="${url}">Download .${ext.toUpperCase()}</a>`;f.el.querySelector(".st").innerHTML=f.html}
-   f.el.querySelector(".meta").textContent=fmtSize(f.file.size)+" → "+fmtSize(data.length);
-  }catch(e){setSt(f,"Failed: "+e.message,"er");$("log").style.display="block"}
-  finally{ffmpeg.off("progress",onP);await ffmpeg.deleteFile(inName).catch(()=>{});await ffmpeg.deleteFile(outName).catch(()=>{})}}
- busy=false;$("go").disabled=false;$("msg").textContent="Finished. Saved files are in your folder; otherwise use the green Download buttons.";
-};
-
-// ---- installable app (PWA)
-let deferred=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;$("install").hidden=false});
-$("install").onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$("install").hidden=true};
-window.addEventListener("appinstalled",()=>{$("install").hidden=true});
-if("serviceWorker"in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+  function loadEntries(){
+    try { const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); return Array.isArray(value) ? value : []; }
+    catch(e){ return []; }
+  }
+  function persist(){
+    localStorage.setItem(STORAGE_KEY + (window.googleTrackerEmail ? '.'+window.googleTrackerEmail : ''), JSON.stringify(entries));
+    if(googleAccessToken&&driveReady){clearTimeout(saveTimer);saveTimer=setTimeout(saveToDrive,500);}
+  }
+  function num(v){ const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
+  function fmt(v){ return `${num(v).toFixed(1)}h`; }
+  function safe(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>t.classList.remove('show'),2300); }
+  function monthEntries(month){ return entries.filter(e=>e.date && e.date.slice(0,7)===month); }
+  function sum(list,key){ return list.reduce((a,e)=>a+num(e[key]),0); }
+  function selectedEntries(){ return entries.filter(e=>e.date===$('selectedDate').value).sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)); }
+  function setField(id,value){ $(id).value = value ?? ''; }
+  function resetForm(){
+    editingId=null; $('entryForm').reset(); $('entryDate').value=$('selectedDate').value || dateString(today);
+    $('formTitle').textContent='Add a work entry'; $('saveBtn').textContent='Add entry'; $('cancelEditBtn').style.display='none'; updateKindFields();
+  }
+  function updateKindFields(){
+    const idle=$('kind').value==='Idle time';
+    $('idleReasonField').classList.toggle('show',idle); $('idleReason').required=idle;
+    $('actualHoursLabel').textContent=idle?'Idle hours':'Actual hours';
+    $('asset').placeholder=idle?'Optional: what were you waiting for?':'e.g. Walk cycle animation';
+    $('bidHours').disabled=idle; if(idle)$('bidHours').value='0';
+  }
+  function readForm(){
+    const idle=$('kind').value==='Idle time';
+    const selectedReason=$('idleReason').value; const details=$('idleDetails').value.trim();
+    const idleReason=idle?(selectedReason==='Other'?'Other: '+details:(selectedReason+(details?': '+details:''))):'';
+    return {date:$('entryDate').value,kind:$('kind').value,client:$('client').value.trim(),project:$('project').value.trim(),asset:$('asset').value.trim(),workStatus:$('workStatus').value,bidHours:idle?0:num($('bidHours').value),actualHours:num($('actualHours').value),idleReason,notes:$('notes').value.trim()};
+  }
+  function fillForm(e){
+    editingId=e.id; $('formTitle').textContent='Edit work entry'; $('saveBtn').textContent='Save changes'; $('cancelEditBtn').style.display='inline-block';
+    for(const [k,id] of Object.entries({date:'entryDate',kind:'kind',client:'client',project:'project',asset:'asset',workStatus:'workStatus',bidHours:'bidHours',actualHours:'actualHours',notes:'notes'})) setField(id,e[k]);
+    if(!$('workStatus').value)$('workStatus').value='done';
+    const reason=String(e.idleReason||''); const known=['Waiting for task assignment','Waiting for client feedback','Waiting for assets or files','Technical issue / software problem','Blocked by another team','Meeting or coordination delay','No tasks assigned']; const match=known.find(x=>reason===x||reason.startsWith(x+': ')); $('idleReason').value=match||(reason?'Other':''); $('idleDetails').value=match?(reason===match?'':reason.slice(match.length+2)):(reason.startsWith('Other: ')?reason.slice(7):''); updateKindFields();
+    $('entryPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function parsePrompt(raw){
+    const text=raw.trim(); if(!text) return null;
+    const get=(patterns)=>{for(const re of patterns){const m=text.match(re);if(m&&m[1])return m[1].trim().replace(/[.,;]+$/,'');}return '';};
+    const hours=(patterns)=>{for(const re of patterns){const m=text.match(re);if(m&&m[1])return Number(m[1]);}return '';};
+    const bid=hours([/(?:bid|estimate|estimated|budgeted|planned)\s*(?:hours?|hrs?|time)?\s*(?:is|of|:|=)?\s*(\d+(?:\.\d+)?)/i, /(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)\s*(?:bid|estimated|estimate)/i]);
+    const actual=hours([/(?:actual|spent|worked|took|used)\s*(?:hours?|hrs?|time)?\s*(?:is|of|:|=)?\s*(\d+(?:\.\d+)?)/i, /(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)\s*(?:actual|spent|worked)/i]);
+    const client=get([/(?:client|customer)\s*[:=-]?\s*([^,;\n.]+)/i]);
+    const project=get([/(?:project)\s*[:=-]?\s*([^,;\n.]+)/i]);
+    let asset=get([/(?:asset|task|work)\s*[:=-]?\s*([^,;\n.]+)/i]);
+    if(!asset){
+      asset=text.replace(/(?:client|customer|project|asset|task|work)\s*[:=-]?\s*[^,;\n.]+/ig,' ')
+        .replace(/(?:bid|estimate|estimated|budgeted|planned|actual|spent|worked|took|used)\s*(?:hours?|hrs?|time)?\s*(?:is|of|:|=)?\s*\d+(?:\.\d+)?/ig,' ')
+        .replace(/\d+(?:\.\d+)?\s*(?:hours?|hrs?|h)\s*(?:bid|estimated|estimate|actual|spent|worked)/ig,' ')
+        .replace(/[;,]+/g,' ').replace(/\s+/g,' ').trim();
+    }
+    const note=get([/(?:notes?|details?)\s*[:=-]\s*([\s\S]+)/i]);
+    const lower=text.toLowerCase();
+    let kind='Project work';
+    let idleReason='';
+    if(/\bidle\b|\bno work\b|\bno task(s)? assigned\b|\bwaiting for (?:task|client|assets|feedback)\b/i.test(text)){kind='Idle time';idleReason=get([/(?:reason|because|idle reason)\s*[:=-]?\s*([^,;\n]+)/i,/(waiting for [^,;\n.]+)/i,/(no tasks assigned)/i,/(no work[^,;\n.]*)/i])||'Other';}
+    else if(/\bmeeting|call\b/.test(lower))kind='Meeting'; else if(/\btraining|learn(ing)?\b/.test(lower))kind='Training'; else if(/\badmin|email|documentation\b/.test(lower))kind='Admin'; else if(/\bleave|holiday|sick\b/.test(lower))kind='Leave';
+    return {date:$('selectedDate').value||dateString(today),kind,client,project,asset,bidHours:kind==='Idle time'?0:bid,actualHours:actual,idleReason,notes:note};
+  }
+  function parseAndFill(){
+    parsed=parsePrompt($('promptInput').value);
+    if(!parsed){toast('Enter a task description first.');return;}
+    for(const [k,id] of Object.entries({date:'entryDate',kind:'kind',client:'client',project:'project',asset:'asset',bidHours:'bidHours',actualHours:'actualHours',notes:'notes'}))setField(id,parsed[k]);
+    if(parsed.kind==='Idle time'){const reason=String(parsed.idleReason||'');const known=['Waiting for task assignment','Waiting for client feedback','Waiting for assets or files','Technical issue / software problem','Blocked by another team','Meeting or coordination delay','No tasks assigned'];const match=known.find(x=>reason.toLowerCase().includes(x.toLowerCase()));$('idleReason').value=match||(reason?'Other':'');$('idleDetails').value=match?'':reason;} updateKindFields();
+    $('parsePreview').classList.add('show');
+    $('previewText').textContent=`${parsed.client||'No client'} · ${parsed.project||'No project'} · ${parsed.asset||'Task not detected'} · Bid: ${parsed.bidHours===''?'not found':fmt(parsed.bidHours)} · Actual: ${parsed.actualHours===''?'not found':fmt(parsed.actualHours)}`;
+    $('entryPanel').scrollIntoView({behavior:'smooth',block:'start'});
+    toast('Prompt parsed — review the fields.');
+  }
+  function saveEntry(ev){
+    ev.preventDefault(); const data=readForm();
+    if(!data.date){toast('Please choose a work date.');return;}
+    if($('actualHours').value==='' || !Number.isFinite(Number($('actualHours').value)) || Number($('actualHours').value)<0 || data.actualHours>8){toast('Enter hours between 0 and 8.');return;}
+    if(data.kind==='Idle time' && !data.idleReason){toast('Select a reason for idle time.');$('idleReason').focus();return;}
+    if(data.kind==='Idle time' && $('idleReason').value==='Other' && !$('idleDetails').value.trim()){toast('Please explain the idle reason.');$('idleDetails').focus();return;}
+    const sameDay=entries.filter(e=>e.date===data.date && e.id!==editingId); const totalAlready=sameDay.reduce((t,e)=>t+num(e.actualHours),0); if(totalAlready+data.actualHours>8){toast(`This date would exceed the 8-hour daily limit (${(totalAlready+data.actualHours).toFixed(1)}h). Edit existing entries first.`);return;}
+    if(editingId){
+      entries=entries.map(e=>e.id===editingId?{...e,...data,updatedAt:Date.now()}:e);
+      toast('Entry updated.');
+    }else{
+      entries.push({...data,id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),createdAt:Date.now()});
+      toast('Work entry saved.');
+    }
+    persist(); $('selectedDate').value=data.date; $('chartMonth').value=data.date.slice(0,7); resetForm(); render();
+  }
+  function removeEntry(id){
+    if(!confirm('Delete this work entry? This cannot be undone.'))return;
+    entries=entries.filter(e=>e.id!==id);persist();render();toast('Entry deleted.');
+  }
+  function dateChip(d){
+    if(!d)return '';
+    const dt=new Date(d+'T00:00:00');
+    const label=isNaN(dt)?d:dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    return `<div class="entry-date"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>${safe(label)}</div>`;
+  }
+  function goToDate(d){
+    if(!d)return;
+    showAllEntries=false;
+    $('selectedDate').value=d;
+    $('selectedDate').dispatchEvent(new Event('change'));
+  }
+  function renderHistory(){
+    const list=(showAllEntries ? entries.slice() : selectedEntries()).sort((a,b)=>(b.date||'').localeCompare(a.date||'') || (b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+    $('historyTitle').textContent=showAllEntries?'All work entries':`Entries for ${$('selectedDate').value||'selected date'}`;
+    $('toggleAllEntriesBtn').textContent=showAllEntries?'Show selected date':'Show all tasks';
+    $('jumpDate').value=$('selectedDate').value||'';
+    $('entryCount').textContent=`${list.length} ${list.length===1?'entry':'entries'}`;
+    const host=$('historyList');
+    if(!list.length){host.innerHTML='<div class="empty">Nothing logged for this date yet.</div>';return;}
+    host.innerHTML=list.map(e=>`<article class="entry"><div class="entry-top"><div>${dateChip(e.date)}<div class="entry-title">${safe(e.asset||e.project||e.kind||'Untitled task')}</div><div class="entry-meta">${safe(e.client||'No client')} · ${safe(e.project||'No project')} · ${safe(e.kind)}</div></div><div class="hours"><b>${fmt(e.actualHours)}</b><div class="sub">${e.kind==='Idle time'?'idle':'actual'}</div></div></div><div class="entry-tags"><span class="tag">Bid ${fmt(e.bidHours)}</span>${e.asset?`<span class="tag">Asset: ${safe(e.asset)}</span>`:''}${e.workStatus&&e.kind!=='Idle time'?`<span class="tag">${safe(e.workStatus)}</span>`:''}</div>${e.idleReason?`<div class="entry-note"><strong>Idle reason:</strong> ${safe(e.idleReason)}</div>`:''}${e.notes?`<div class="entry-note">${safe(e.notes)}</div>`:''}<div class="button-row" style="margin-top:10px"><button class="small" data-edit="${safe(e.id)}">Edit</button>${showAllEntries&&e.date?`<button class="small" data-jump="${safe(e.date)}">Go to day</button>`:''}<button class="small danger" data-delete="${safe(e.id)}">Delete</button></div></article>`).join('');
+    host.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{const e=entries.find(x=>x.id===b.dataset.edit);if(e)fillForm(e);}));
+    host.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeEntry(b.dataset.delete)));
+    host.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>goToDate(b.dataset.jump)));
+  }
+  function renderStats(){
+    const day=selectedEntries(), month=monthEntries($('selectedDate').value.slice(0,7)), dayWork=day.filter(e=>e.kind!=='Idle time'), monthWork=month.filter(e=>e.kind!=='Idle time'), actual=sum(dayWork,'actualHours'), bid=sum(day,'bidHours'), ma=sum(monthWork,'actualHours'), mb=sum(month,'bidHours'), diff=ma-mb;
+    $('dayActual').textContent=fmt(actual);$('dayBid').textContent=fmt(bid);$('monthActual').textContent=fmt(ma);$('monthBid').textContent=fmt(mb);
+    $('dayActualFoot').textContent=dayWork.length?`${dayWork.length} task${dayWork.length===1?'':'s'} · idle shown below`:'No task hours logged';
+    $('dayBidFoot').textContent=bid?`${actual>bid?'+':''}${(actual-bid).toFixed(1)}h actual vs bid`:'Estimated workload';
+    $('monthActualFoot').textContent=`${month.length} task${month.length===1?'':'s'} this month`;
+    $('monthDiffFoot').textContent=mb?(diff>0?`${diff.toFixed(1)}h over bid`:diff<0?`${Math.abs(diff).toFixed(1)}h under bid`:'On estimate'):'No bid hours recorded';
+    $('monthLabel').textContent=$('selectedDate').value.slice(0,7)||'Selected month';
+    $('monthDifference').textContent=`${diff>=0?'+':''}${diff.toFixed(1)}h`;
+    const pct=mb?ma/mb*100:0;
+    $('efficiencyValue').textContent=mb?`${pct.toFixed(0)}%`:'—';
+    $('efficiencyBar').style.width=`${Math.min(100,pct)}%`;
+    $('efficiencyStatus').textContent=!mb?'No data yet':pct<100?'Under estimate':pct===100?'On estimate':'Over estimate';
+    const work=day.filter(e=>e.kind!=='Idle time').reduce((t,e)=>t+num(e.actualHours),0), idle=day.filter(e=>e.kind==='Idle time').reduce((t,e)=>t+num(e.actualHours),0), logged=work+idle, remaining=Math.max(0,8-logged);
+    $('dailyBalance').textContent=`${logged.toFixed(1)} / 8.0h`; $('dailyBalanceBar').style.width=`${Math.min(100,logged/8*100)}%`; $('dailyRemaining').textContent=remaining>0?`${remaining.toFixed(1)}h remaining to account for`:logged===8?'All 8 hours accounted for':`${(logged-8).toFixed(1)}h over daily target`; $('dailyBreakdown').textContent=`Task work ${work.toFixed(1)}h · Idle ${idle.toFixed(1)}h`;
+  }
+  function renderProjects(){
+    const month=monthEntries($('chartMonth').value), map={};
+    month.filter(e=>e.kind!=='Idle time').forEach(e=>{const name=e.project||'Unassigned project';if(!map[name])map[name]={actual:0,bid:0,count:0};map[name].actual+=num(e.actualHours);map[name].bid+=num(e.bidHours);map[name].count++;});
+    const rows=Object.entries(map).sort((a,b)=>b[1].actual-a[1].actual), host=$('projectTotals');
+    if(!rows.length){host.innerHTML='<div class="empty">No project hours yet.</div>';return;}
+    host.innerHTML=rows.map(([name,v])=>`<div class="entry"><div class="entry-top"><div><div class="entry-title">${safe(name)}</div><div class="entry-meta">${v.count} task${v.count===1?'':'s'}</div></div><div class="hours"><b>${fmt(v.actual)}</b><div class="sub">of ${fmt(v.bid)} bid</div></div></div></div>`).join('');
+  }
+  function drawChart(){
+    const canvas=$('performanceChart'), rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+    canvas.width=Math.max(1,Math.floor(rect.width*dpr));canvas.height=Math.max(1,Math.floor(rect.height*dpr));
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const css=getComputedStyle(document.documentElement),c=n=>css.getPropertyValue(n).trim();
+    const w=rect.width,h=rect.height,month=$('chartMonth').value||monthString(today),[year,mon]=month.split('-').map(Number),days=new Date(year,mon,0).getDate();
+    const data=Array.from({length:days},(_,i)=>({day:i+1,bid:0,actual:0}));
+    monthEntries(month).filter(e=>e.kind!=='Idle time').forEach(e=>{const day=Number(e.date.slice(8,10));if(data[day-1]){data[day-1].bid+=num(e.bidHours);data[day-1].actual+=num(e.actualHours);}});
+    ctx.clearRect(0,0,w,h);
+    const left=30,right=8,top=10,bottom=25,plotW=w-left-right,plotH=h-top-bottom;
+    const maxVal=Math.max(4,...data.map(d=>Math.max(d.bid,d.actual)));const step=Math.max(1,Math.ceil(maxVal/4));const max=step*4;
+    ctx.font='11px Manrope,system-ui';ctx.textAlign='right';ctx.textBaseline='middle';
+    for(let i=0;i<=4;i++){const val=max-i*step,y=top+plotH*i/4;ctx.strokeStyle=c('--line');ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillStyle=c('--muted');ctx.fillText(String(val),left-8,y);}
+    const slot=plotW/days,barW=Math.max(1,Math.min(10,slot*.32)),gap=Math.max(1,slot*.05);
+    const bar=(x,y,w,h)=>{if(h<=0)return;const col=String(ctx.fillStyle);if(/^#[0-9a-f]{6}$/i.test(col)){const g=ctx.createLinearGradient(0,y,0,y+h);g.addColorStop(0,col);g.addColorStop(1,col+'66');ctx.fillStyle=g;}ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,[Math.min(5,w/2),Math.min(5,w/2),0,0]);else ctx.rect(x,y,w,h);ctx.fill();};
+    data.forEach((d,i)=>{const center=left+i*slot+slot/2;const bh=d.bid/max*plotH,ah=d.actual/max*plotH;ctx.fillStyle=c('--bid');bar(center-gap/2-barW,top+plotH-bh,barW,bh);ctx.fillStyle=c('--actual');bar(center+gap/2,top+plotH-ah,barW,ah);});
+    ctx.fillStyle=c('--muted');ctx.textAlign='center';ctx.textBaseline='top';
+    const stride=days>24?5:days>15?3:2;
+    data.forEach((d,i)=>{if(i===0||(d.day%stride===0)||d.day===days)ctx.fillText(String(d.day),left+i*slot+slot/2,top+plotH+7);});
+  }
+  function render(){renderStats();renderHistory();renderProjects();drawChart();renderReport();}
+  function exportCSV(){
+    const headers=['Date','Type','Client','Project','Asset / Task','Bid Hours','Actual Hours','Idle Reason','Notes'];
+    const rows=[headers,...entries.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(e=>[e.date,e.kind,e.client,e.project,e.asset,e.bidHours,e.actualHours,e.idleReason||'',e.notes])];
+    const csv=rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=`work-tracker-${dateString(today)}.csv`;a.click();URL.revokeObjectURL(url);toast('CSV export downloaded.');
+  }
+  function setScreenshot(file){
+    if(!file || !file.type.startsWith('image/')){toast('Please choose a screenshot image.');return;}
+    screenshotImage=file;
+    const oldUrl=$('screenshotPreview').dataset.objectUrl;
+    if(oldUrl)URL.revokeObjectURL(oldUrl);
+    const url=URL.createObjectURL(file);
+    $('screenshotPreview').dataset.objectUrl=url;
+    $('screenshotPreview').src=url;
+    $('screenshotPreview').style.display='block';
+    readScreenshotText();
+  }
+  async function readScreenshotText(){
+    if(!screenshotImage)return;
+    if(!window.Tesseract){$('ocrStatus').textContent='Screenshot received, but text-reading could not load. Check your internet connection and try again.';return;}
+    $('ocrStatus').textContent='Reading screenshot and extracting text… this may take a moment.';
+    try{
+      const result=await Tesseract.recognize(screenshotImage,'eng',{logger:m=>{if(m.status==='recognizing text')$('ocrStatus').textContent=`Reading screenshot… ${Math.round((m.progress||0)*100)}%`;}});
+      const extracted=String(result.data.text||'').trim();
+      if(!extracted){$('ocrStatus').textContent='No readable text found. Try a clearer screenshot or type the details manually.';return;}
+      const current=$('promptInput').value.trim();
+      $('promptInput').value=current ? current+'\n\n'+extracted : extracted;
+      $('ocrStatus').textContent='Screenshot text added to this prompt. Review names, dates, and hours, then click Parse prompt. OCR may misread small text or tables.';
+      $('promptInput').focus();
+      $('promptInput').setSelectionRange($('promptInput').value.length,$('promptInput').value.length);
+      toast('Screenshot text added to Quick Log. Review it before parsing.');
+    }catch(err){$('ocrStatus').textContent='Could not read the screenshot. Try a clearer image or type/paste the text manually.';}
+  }
+  $('screenshotFile').addEventListener('change',e=>{const file=e.target.files&&e.target.files[0];if(file)setScreenshot(file);});
+  $('uploadScreenshotBtn').addEventListener('click',()=>$('screenshotFile').click());
+  $('promptInput').addEventListener('paste',e=>{
+    const items=[...(e.clipboardData?.items||[])];
+    const item=items.find(x=>x.type&&x.type.startsWith('image/'));
+    if(item){e.preventDefault();const file=item.getAsFile();if(file)setScreenshot(file);}
+  });
+  $('promptInput').addEventListener('dragover',e=>{if([...(e.dataTransfer?.items||[])].some(x=>x.type&&x.type.startsWith('image/')))e.preventDefault();});
+  $('promptInput').addEventListener('drop',e=>{const file=[...(e.dataTransfer?.files||[])].find(f=>f.type.startsWith('image/'));if(file){e.preventDefault();setScreenshot(file);}});
+  $('parseBtn').addEventListener('click',parseAndFill);
+  $('promptInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')parseAndFill();});
+  $('clearPromptBtn').addEventListener('click',()=>{$('promptInput').value='';$('parsePreview').classList.remove('show');screenshotImage=null;$('screenshotFile').value='';const url=$('screenshotPreview').dataset.objectUrl;if(url)URL.revokeObjectURL(url);delete $('screenshotPreview').dataset.objectUrl;$('screenshotPreview').removeAttribute('src');$('screenshotPreview').style.display='none';$('ocrStatus').textContent='Tip: paste a screenshot into the prompt box, or choose Upload screenshot.';});
+  $('entryForm').addEventListener('submit',saveEntry);
+  $('kind').addEventListener('change',updateKindFields);
+  $('toggleAllEntriesBtn').addEventListener('click',()=>{showAllEntries=!showAllEntries;renderHistory();});
+  $('jumpDate').addEventListener('change',()=>goToDate($('jumpDate').value));
+  $('jumpTodayBtn').addEventListener('click',()=>goToDate(dateString(new Date())));
+  $('cancelEditBtn').addEventListener('click',resetForm);
+  $('selectedDate').addEventListener('change',()=>{if(!editingId)$('entryDate').value=$('selectedDate').value; $('chartMonth').value=$('selectedDate').value.slice(0,7);render();});
+  $('chartMonth').addEventListener('change',()=>{renderProjects();drawChart();});
+  $('exportBtn').addEventListener('click',exportCSV);
+  $('googleSignInBtn').addEventListener('click',googleSignIn);
+  $('googleSignOutBtn').addEventListener('click',googleSignOut);
+  $('clearDateBtn').addEventListener('click',()=>{
+    const date=$('selectedDate').value, count=entries.filter(e=>e.date===date).length;
+    if(!count){toast('No entries to clear for this date.');return;}
+    if(!confirm(`Delete all ${count} entr${count===1?'y':'ies'} for ${date}? This cannot be undone.`))return;
+    entries=entries.filter(e=>e.date!==date);persist();resetForm();render();toast('Date entries cleared.');
+  });
+  window.addEventListener('resize',drawChart);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawChart);
+  $('prevDayBtn').addEventListener('click',()=>shiftDay(-1));
+  $('nextDayBtn').addEventListener('click',()=>shiftDay(1));
+  $('todayBtn').addEventListener('click',()=>{$('selectedDate').value=dateString(new Date());$('selectedDate').dispatchEvent(new Event('change'));});
+  function shiftDay(n){const v=$('selectedDate').value;if(!v)return;const d=new Date(v+'T00:00:00');d.setDate(d.getDate()+n);$('selectedDate').value=dateString(d);$('selectedDate').dispatchEvent(new Event('change'));}
+  const THEME_KEY='dailyWorkTracker.theme', root=document.documentElement;
+  try{const t=localStorage.getItem(THEME_KEY);if(t==='dark'||t==='light')root.dataset.theme=t;}catch(e){}
+  $('themeBtn').addEventListener('click',()=>{
+    const cur=root.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'), next=cur==='dark'?'light':'dark';
+    root.dataset.theme=next;try{localStorage.setItem(THEME_KEY,next);}catch(e){}drawChart();
+  });
+  /* ---- Daily report message ---- */
+  var NAME_KEY='dailyWorkTracker.reportName', DEP_KEY='dailyWorkTracker.dependencies', reportDateShown=null;
+  function readDeps(){try{const v=JSON.parse(localStorage.getItem(DEP_KEY)||'{}');return v&&typeof v==='object'?v:{};}catch(e){return {};}}
+  function titleCase(t){return String(t||'').replace(/\b\w/g,c=>c.toUpperCase());}
+  function buildReport(date,name,dependency){
+    const list=entries.filter(e=>e.date===date&&e.kind!=='Idle time'&&e.kind!=='Leave').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    if(!list.length)return '';
+    const groups=[],index={};
+    list.forEach(e=>{
+      const label=(e.client&&e.project)?`${titleCase(e.client)} – ${titleCase(e.project)}`:titleCase(e.client||e.project||e.kind||'Work');
+      const key=label.toLowerCase();
+      if(!(key in index)){index[key]=groups.length;groups.push({label,items:[]});}
+      groups[index[key]].items.push(`Asset: ${e.asset||e.kind||'-'}\nWork Status: ${e.workStatus||'done'}`);
+    });
+    const [y,m,d]=date.split('-');
+    const blocks=groups.map(g=>`Project: ${g.label}\n\n${g.items.join('\n\n')}`);
+    return `Date: ${d}/${m}/${y}\n\nName: ${name||'-'}\n\n${blocks.join('\n\n\n')}\n\n\nDependency: ${dependency||'N/A'}`;
+  }
+  function renderReport(){
+    const date=$('selectedDate').value; if(!date)return;
+    if(reportDateShown!==date){reportDateShown=date;$('reportDependency').value=readDeps()[date]||'';}
+    $('reportText').value=buildReport(date,$('reportName').value.trim(),$('reportDependency').value.trim());
+    const [y,m,d]=date.split('-'); $('reportSub').textContent=`For ${d}/${m}/${y} · refreshes when you add or edit entries.`;
+  }
+  async function copyReport(){
+    const t=$('reportText').value;
+    if(!t.trim()){toast('Add a work entry for this date first.');return;}
+    try{await navigator.clipboard.writeText(t);}catch(e){$('reportText').select();document.execCommand('copy');}
+    toast('Message copied. Paste it in your group.');
+  }
+  try{$('reportName').value=localStorage.getItem(NAME_KEY)||'Vinayak Benake';}catch(e){$('reportName').value='Vinayak Benake';}
+  $('reportName').addEventListener('input',()=>{try{localStorage.setItem(NAME_KEY,$('reportName').value);}catch(e){}renderReport();});
+  $('reportDependency').addEventListener('input',()=>{const deps=readDeps();const v=$('reportDependency').value.trim();if(v)deps[reportDateShown]=v;else delete deps[reportDateShown];try{localStorage.setItem(DEP_KEY,JSON.stringify(deps));}catch(e){}renderReport();});
+  $('copyReportBtn').addEventListener('click',copyReport);
+  updateKindFields(); render();
+})();
 </script>
 </body>
 </html>
