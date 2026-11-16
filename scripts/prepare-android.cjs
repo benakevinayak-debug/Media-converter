@@ -1,0 +1,25 @@
+const fs=require('node:fs/promises');const path=require('node:path');
+(async()=>{
+ const root=path.resolve(__dirname,'..');const destination=path.join(root,'android/app/src/main/assets/www');
+ await fs.rm(destination,{recursive:true,force:true});await fs.mkdir(destination,{recursive:true});
+ for(const file of ['index.html','styles.css','renderer.js','hero.png'])await fs.copyFile(path.join(root,'desktop',file),path.join(destination,file));
+ let html=await fs.readFile(path.join(destination,'index.html'),'utf8');
+ html=html.replace('<script src="renderer.js"></script>','<script src="android-bridge.js"></script><script src="renderer.js"></script>');
+ html=html.replace('or drop files anywhere','then choose an output folder').replace('Your media stays on your computer.','Your media stays on your phone.').replace('Choose your files. We’ll handle the conversion.','Choose files and an output folder, or import a whole folder.');
+ html=html.replace('Outputs save beside your originals.','Folder imports save beside originals.').replace('Existing files are kept safe.','Individual files use your chosen output folder.').replace('Subfolders are included.</p>','Subfolders are included. For individual files, choose an output folder.</p>');
+ html=html.replace('<strong>Save beside original</strong>','<strong>Save to your chosen folder</strong>').replace('Subfolders included · Never overwrite','Folder import: beside original · Never overwrite');
+ html=html.replace('on your Windows computer','on your Android device');
+ await fs.writeFile(path.join(destination,'index.html'),html);
+ let renderer=await fs.readFile(path.join(destination,'renderer.js'),'utf8');
+ renderer=renderer.replaceAll('app://desktop/','https://appassets.androidplatform.net/assets/www/').replace('Show in folder','Open result').replaceAll('Output will be saved beside each original.','Outputs use the selected folder. Folder imports save beside originals.').replaceAll('Outputs are beside their original files.','Outputs are in your selected folders.').replace('Saving beside original…','Saving to selected folder…');
+ await fs.writeFile(path.join(destination,'renderer.js'),renderer);
+ await fs.copyFile(path.join(root,'android/bridge.js'),path.join(destination,'android-bridge.js'));
+ await fs.appendFile(path.join(destination,'styles.css'),'\n@media(max-width:720px){.topbar{flex-wrap:wrap}.brand{flex:1}.top-actions{order:1}.topbar nav{order:2;width:100%;justify-content:center;margin:0;gap:18px}.nav-item#privacy,.nav-item#nav-convert{display:block}.nav-item,.icon-button,.folder-button,.chip,.quality,.text-button,.st .sec{min-height:44px}.smart{min-height:44px}}\n');
+ for(const [name,source] of [['ffmpeg','@ffmpeg/ffmpeg'],['core','@ffmpeg/core']])await fs.cp(path.join(root,'node_modules',source,'dist/umd'),path.join(destination,'vendor',name),{recursive:true});
+ await fs.mkdir(path.join(root,'android/app/src/main/res/mipmap-xxxhdpi'),{recursive:true});
+ await fs.copyFile(path.join(root,'build/icon.png'),path.join(root,'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png'));
+ for(const name of ['THIRD-PARTY-NOTICES.md','LICENSE'])await fs.copyFile(path.join(root,name),path.join(destination,name));
+ await fs.cp(path.join(root,'licenses'),path.join(destination,'licenses'),{recursive:true});
+ for(const file of ['NOTICE.md','APACHE-2.0.txt'])await fs.copyFile(path.join(root,'android',file),path.join(destination,file));
+ console.log('Prepared Android UI and bundled offline FFmpeg engine.');
+})().catch(e=>{console.error(e);process.exitCode=1});
