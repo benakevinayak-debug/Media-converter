@@ -14,12 +14,13 @@
     "dist:win": "electron-builder --win --publish never",
     "dist:mac": "electron-builder --mac --publish never",
     "dist:linux": "electron-builder --linux --publish never",
-    "test": "node --test desktop/files.test.cjs desktop/launch.test.cjs scripts/store-config.test.cjs",
+    "test": "node --test desktop/files.test.cjs desktop/launch.test.cjs scripts/store-config.test.cjs android/bridge.test.cjs",
     "pack:win": "electron-builder --win dir --x64 --publish never",
     "store:config": "node scripts/store-config.cjs",
     "store:check": "node scripts/store-config.cjs --submission",
     "store:build": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Store.ps1",
-    "setup:compile": "node scripts/create-setup.cjs"
+    "setup:compile": "node scripts/create-setup.cjs",
+    "android:prepare": "node scripts/prepare-android.cjs"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "0.12.10",
