@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+ xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+ xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+ xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+ xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+ IgnorableNamespaces="uap uap2 uap3 rescap">
+ <Identity Name="{{identityName}}" Publisher="{{publisher}}" Version="{{version}}" ProcessorArchitecture="x64" />
+ <Properties><DisplayName>{{displayName}}</DisplayName><PublisherDisplayName>{{publisherDisplayName}}</PublisherDisplayName><Description>Private offline video and audio conversion by Vinayak Benake.</Description><Logo>Assets\StoreLogo.png</Logo></Properties>
+ <Resources><Resource Language="en-US" /></Resources>
+ <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" /></Dependencies>
+ <Applications><Application Id="MediaConvert" Executable="app\MediaConvert.exe" EntryPoint="Windows.FullTrustApplication">
+  <uap:VisualElements DisplayName="{{displayName}}" Description="Private offline video and audio conversion by Vinayak Benake." BackgroundColor="#151e2f" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png"><uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" /></uap:VisualElements>
+  <Extensions><uap:Extension Category="windows.fileTypeAssociation"><uap3:FileTypeAssociation Name="mediaconvertmedia" Parameters="--convert &quot;%1&quot;">
+   <uap:DisplayName>MediaConvert media file</uap:DisplayName><uap:Logo>Assets\Square44x44Logo.png</uap:Logo>
+   <uap:SupportedFileTypes>{{fileTypes}}</uap:SupportedFileTypes>
+   <uap2:SupportedVerbs><uap3:Verb Id="convert" Parameters="--convert &quot;%1&quot;" MultiSelectModel="Document">Convert with MediaConvert</uap3:Verb></uap2:SupportedVerbs>
+  </uap3:FileTypeAssociation></uap:Extension></Extensions>
+ </Application></Applications>
+ <Capabilities><rescap:Capability Name="runFullTrust" /></Capabilities>
+</Package>
