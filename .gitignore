@@ -1,2 +1,10 @@
 node_modules/
 dist/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/app/src/main/assets/
+android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+*.jks
+*.keystore

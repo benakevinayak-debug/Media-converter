@@ -1,0 +1,69 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/android-apk]
+    paths:
+      - android/**
+      - desktop/**
+      - build/**
+      - licenses/**
+      - package*.json
+      - scripts/prepare-android.cjs
+      - .github/workflows/android.yml
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: npm test
+      - run: node scripts/prepare-android.cjs
+      - run: gradle -p android assembleDebug assembleDebugAndroidTest --stacktrace
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Test offline conversion in Android WebView
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 512M
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          disable-animations: true
+          script: gradle -p android connectedDebugAndroidTest --stacktrace
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk MediaConvert-Android-1.2.0-test.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MediaConvert-Android-APK
+          path: MediaConvert-Android-1.2.0-test.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android-test-reports
+          path: android/app/build/reports/androidTests/
+          if-no-files-found: ignore
