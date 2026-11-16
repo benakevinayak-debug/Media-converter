@@ -16,6 +16,7 @@ const fs=require('node:fs/promises');const path=require('node:path');
  await fs.copyFile(path.join(root,'android/bridge.js'),path.join(destination,'android-bridge.js'));
  await fs.appendFile(path.join(destination,'styles.css'),'\n@media(max-width:720px){.topbar{flex-wrap:wrap}.brand{flex:1}.top-actions{order:1}.topbar nav{order:2;width:100%;justify-content:center;margin:0;gap:18px}.nav-item#privacy,.nav-item#nav-convert{display:block}.nav-item,.icon-button,.folder-button,.chip,.quality,.text-button,.st .sec{min-height:44px}.smart{min-height:44px}}\n');
  for(const [name,source] of [['ffmpeg','@ffmpeg/ffmpeg'],['core','@ffmpeg/core']])await fs.cp(path.join(root,'node_modules',source,'dist/umd'),path.join(destination,'vendor',name),{recursive:true});
+ await fs.mkdir(path.join(root,'android/app/src/main/res/mipmap-xxxhdpi'),{recursive:true});
  await fs.copyFile(path.join(root,'build/icon.png'),path.join(root,'android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png'));
  for(const name of ['THIRD-PARTY-NOTICES.md','LICENSE'])await fs.copyFile(path.join(root,name),path.join(destination,name));
  await fs.cp(path.join(root,'licenses'),path.join(destination,'licenses'),{recursive:true});
