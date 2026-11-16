@@ -6,7 +6,7 @@ const path = require('node:path');
 const { MediaFiles } = require('./files.cjs');
 
 test('folder import is recursive, deduplicates selections, skips links and non-media, and reports missing files', async t => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'mediaconvert-'));
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'mediaconvert-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   await fs.mkdir(path.join(root, 'sub'));
   await fs.writeFile(path.join(root, 'clip.MP4'), 'original');
@@ -23,7 +23,7 @@ test('folder import is recursive, deduplicates selections, skips links and non-m
 });
 
 test('save stays beside the source, never overwrites originals or existing outputs, and rejects invalid requests', async t => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'mediaconvert-'));
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'mediaconvert-')));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const original = path.join(root, 'my clip.wav');
   await fs.writeFile(original, 'keep original');
