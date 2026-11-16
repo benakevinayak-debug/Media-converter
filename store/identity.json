@@ -1,0 +1,16 @@
+{
+  "identityName": "REPLACE_WITH_PARTNER_CENTER_PACKAGE_NAME",
+  "publisher": "CN=REPLACE_WITH_PARTNER_CENTER_PUBLISHER_ID",
+  "publisherDisplayName": "Vinayak Benake",
+  "displayName": "MediaConvert",
+  "supportEmail": "Benakevinayak@gmail.com",
+  "privacyPolicyUrl": "REPLACE_WITH_PUBLIC_HTTPS_PRIVACY_POLICY_URL",
+  "sourceCodeUrl": "https://github.com/benakevinayak-debug/Media-converter",
+  "releaseChecks": {
+    "windowsInstallationAndUninstallTested": false,
+    "windowsAppCertificationKitPassed": false,
+    "keyboardAndScreenReaderReviewed": false,
+    "correspondingSourceAndLicensesReviewed": false,
+    "listingAndAgeRatingsReviewed": false
+  }
+}

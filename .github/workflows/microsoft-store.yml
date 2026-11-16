@@ -1,0 +1,50 @@
+name: Build Microsoft Store MSIX
+on:
+  workflow_dispatch:
+    inputs:
+      identity_name:
+        description: Exact Package/Identity/Name from Partner Center
+        required: true
+        type: string
+      publisher:
+        description: Exact Package/Identity/Publisher (CN=...) from Partner Center
+        required: true
+        type: string
+      publisher_display_name:
+        description: Exact publisher display name from Partner Center
+        required: true
+        default: Vinayak Benake
+        type: string
+      privacy_url:
+        description: Public HTTPS privacy policy URL
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  msix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Configure reserved identity
+        env:
+          STORE_NAME: ${{ inputs.identity_name }}
+          STORE_PUBLISHER: ${{ inputs.publisher }}
+          STORE_PUBLISHER_DISPLAY: ${{ inputs.publisher_display_name }}
+          STORE_PRIVACY_URL: ${{ inputs.privacy_url }}
+        run: >-
+          node -e "const fs=require('fs');const p='store/identity.json';const v=JSON.parse(fs.readFileSync(p));Object.assign(v,{identityName:process.env.STORE_NAME,publisher:process.env.STORE_PUBLISHER,publisherDisplayName:process.env.STORE_PUBLISHER_DISPLAY,privacyPolicyUrl:process.env.STORE_PRIVACY_URL});fs.writeFileSync(p,JSON.stringify(v,null,2));"
+      - run: npm run store:build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MediaConvert-Microsoft-Store-MSIX
+          path: dist/*.msix
+          if-no-files-found: error

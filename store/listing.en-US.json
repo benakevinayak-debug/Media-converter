@@ -1,0 +1,26 @@
+{
+  "displayName": "MediaConvert",
+  "publisherCredit": "Vinayak Benake",
+  "language": "en-US",
+  "suggestedCategory": "Photo & video",
+  "shortDescription": "Convert video and audio offline. Keep your files on your device.",
+  "description": "Give your media a fresh format with MediaConvert, created by Vinayak Benake. Convert video and audio on your Windows PC without uploading your files or creating an account. Add individual files or entire folders, choose a format and quality preset, and save results beside the originals. Existing files are preserved with numbered output names. A clear queue, light and dark themes, and quick access to saved outputs keep the process simple. Supports MP4, MOV, MKV, WebM, AVI, GIF, MP3, WAV, FLAC, AAC, M4A, OGG, and OPUS outputs. Actual conversion support depends on the source codecs and available memory. Very large files may exceed the bundled WebAssembly engine's memory limits.",
+  "features": [
+    "Offline video and audio conversion on your device",
+    "Drag files or folders into the app; includes subfolders",
+    "13 output formats for common video and audio workflows",
+    "Small, Balanced, and High presets where supported",
+    "Smart stream copy for compatible MP4, MOV, and MKV media",
+    "Save outputs beside originals without overwriting existing files",
+    "Light and dark themes with an accessible conversion queue",
+    "Created by Vinayak Benake"
+  ],
+  "keywords": ["media converter", "video converter", "audio converter", "offline", "MP4", "MP3", "FFmpeg"],
+  "supportEmail": "Benakevinayak@gmail.com",
+  "privacyPolicy": "Host privacy-policy.html at a public HTTPS URL and enter it in Partner Center and identity.json.",
+  "releaseNotes": "Version 1.2.0 adds a peach-and-coral interface with an original conversion illustration, dark mode, creator credits, support information, and a Microsoft Store packaging workflow. Folder conversion, output beside originals, and safe numbered filenames are retained.",
+  "ageRatings": "Publisher must complete the IARC questionnaire accurately in Partner Center; no rating is preassigned.",
+  "pricingAndMarkets": "Publisher must choose pricing and markets in Partner Center.",
+  "minimumSystem": "Windows 10 version 2004 (build 19041) or later; x64; keyboard and mouse or compatible input.",
+  "reviewNotes": "The app uses runFullTrust because Electron hosts a desktop process and the app reads user-selected media and writes converted outputs beside those files. It does not request administrator privileges. All conversion resources are bundled. No accounts, media uploads, advertising, or analytics are implemented. Test using a writable folder; source and output licensing obligations must be reviewed before public distribution."
+}

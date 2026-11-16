@@ -1,0 +1,96 @@
+{
+  "name": "mediaconvert-desktop",
+  "version": "1.2.0",
+  "description": "Private offline video and audio converter",
+  "author": {
+    "name": "Vinayak Benake",
+    "email": "Benakevinayak@gmail.com"
+  },
+  "license": "MIT",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "test": "node --test desktop/files.test.cjs desktop/launch.test.cjs scripts/store-config.test.cjs",
+    "pack:win": "electron-builder --win dir --x64 --publish never",
+    "store:config": "node scripts/store-config.cjs",
+    "store:check": "node scripts/store-config.cjs --submission",
+    "store:build": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Store.ps1",
+    "setup:compile": "node scripts/create-setup.cjs"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "0.12.10",
+    "@ffmpeg/core": "0.12.6",
+    "@ffmpeg/util": "0.12.1"
+  },
+  "devDependencies": {
+    "electron": "42.11.18",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.vinayakbenake.mediaconvert",
+    "productName": "MediaConvert",
+    "files": [
+      "desktop/**/*",
+      "icon-512.png",
+      "LICENSE",
+      "package.json",
+      "node_modules/@ffmpeg/**/*",
+      "THIRD-PARTY-NOTICES.md",
+      "licenses/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/@ffmpeg/core/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.video"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "AudioVideo"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "desktop/installer.nsh",
+      "perMachine": false
+    },
+    "extraFiles": [
+      {
+        "from": "desktop/windows",
+        "to": ".",
+        "filter": [
+          "*.cmd",
+          "*.ps1"
+        ]
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
+      },
+      {
+        "from": "licenses",
+        "to": "licenses"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.MediaConvert.txt"
+      },
+      {
+        "from": "store/privacy-policy.html",
+        "to": "Privacy-Policy.html"
+      }
+    ]
+  },
+  "homepage": "https://github.com/benakevinayak-debug/Media-converter",
+  "copyright": "Copyright \u00a9 2026 Vinayak Benake"
+}
