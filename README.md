@@ -90,3 +90,18 @@ file selection; conversion is explicitly disabled in the browser preview.
 ### Windows 1.3.2
 
 The Settings page saves the default output format, quality, theme, Smart stream copy, and open-folder preference locally. Save applies these choices to pending files and future sessions. Restore defaults resets them. Conversion controls in the main workspace can override these defaults for the current session. Outputs keep their source basename; a number is added only if the destination already exists, including same-format conversions. Originals are never overwritten.
+
+### Windows 1.4.0 — Tools workspace
+
+Open **Tools** in the sidebar to use SVG Optimizer, GIF Optimizer, HTML Converter, WebP / AVIF Converter, APNG Converter, Lottie Converter, Sprite Sheet Generator, PNG Sequence Converter, Image Metadata Cleaner, and Batch Asset Optimizer. The three original media presets remain below the tool cards. Each tool has native file selection, export options and per-file results with Show in folder. All processing happens locally. The HTML preview shows the interface; native conversion requires the installed Windows application.
+
+- SVG cleanup preserves IDs, geometry, animation data and styles. GIF optimization retains frames, timing and looping. Optimizers keep original bytes when re-encoding would increase size.
+- AVIF exports still images. WebP supports GIF/WebP animations. Animated PNG inputs use APNG Converter so they are not silently flattened.
+- HTML export supports self-contained pages with inline CSS and data-embedded images/fonts. JavaScript and external requests are disabled. PNG captures the selected viewport; PDF prints the document; video captures CSS animations for a chosen duration.
+- Lottie export supports keyframe-based SVG animations with embedded images, up to 20 seconds. Expressions, effects and external assets/fonts are rejected. Output supports GIF, MP4 and numbered PNG frames.
+- Sprite sheets accept one GIF, APNG or WebP, or multiple equal-sized PNGs. PNG sequences accept up to 300 equal-sized frames, ordered naturally by filename.
+- Metadata cleaning re-encodes pixels without optional metadata; it can change lossy image detail and does not guarantee smaller files.
+- Batch optimization processes up to 500 selected files or files in a folder tree. Each output stays beside its source, preserving the basename and using a numeric suffix for collisions. A per-file failure does not cancel other files.
+- Rendering supports up to 1920×1080, 30 fps and 20 seconds, with additional total-pixel/frame limits. Temporary frames are removed after processing; an interrupted process may leave temporary files in the system temp folder.
+
+Run `npm test` for native image/animation, output naming and launch tests. On a Windows desktop, `npm run test:render` verifies real HTML → PNG/PDF/MP4/WebM and Lottie → GIF/MP4/PNG exports and requires a completed seven-export report. CI runs both before packaging the NSIS EXE.

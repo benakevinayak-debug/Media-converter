@@ -38,7 +38,7 @@ function updateTotals(){
  $('clear').disabled=busy||!files.length;$('stop').hidden=!busy;$('stop').disabled=stopAfterFile;
  const pending=files.filter(f=>!f.done);$('select-all').disabled=busy||!pending.length;$('select-all').checked=!!pending.length&&pending.every(f=>f.selected);$('select-all').indeterminate=pending.some(f=>f.selected)&&!pending.every(f=>f.selected);
  $('preferences-fields').disabled=busy||window.assetToolBusy;$('format').disabled=busy;$('fast').disabled=busy;$('open-folder').disabled=busy;
- document.querySelectorAll('#quals button,[data-category],[data-preset]').forEach(b=>b.disabled=busy);
+ document.querySelectorAll('#quals button,[data-category],[data-preset]').forEach(b=>b.disabled=busy);window.refreshAssetTools?.();
 }
 function visibleFiles(){return files.filter(f=>{
  const phase=filter==='all'||(filter==='completed'?f.done:f.phase===filter);

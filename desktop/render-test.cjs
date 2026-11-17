@@ -1,5 +1,6 @@
 const {app,BrowserWindow,session}=require('electron');const fs=require('node:fs/promises');const path=require('node:path');const os=require('node:os');const assert=require('node:assert/strict');const sharp=require('sharp');
 const {createDocumentRenderer}=require('./render-document.cjs');const {AssetTools,encode}=require('./asset-tools.cjs');
+app.on('window-all-closed',()=>{});
 app.whenReady().then(async()=>{
  const report=[];
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'document-test-'));
@@ -11,7 +12,7 @@ app.whenReady().then(async()=>{
    for(const format of formats){
     const {files}=await service.collect(tool,[file]);const [result]=await service.run(tool,files.map(f=>f.id),{format,width:64,height:64,fps:5,duration:.6});assert.ok(!result.error,JSON.stringify(result));
     if(format==='pdf')assert.equal((await fs.readFile(result.output)).subarray(0,4).toString(),'%PDF');
-    else if(format==='png'&&tool==='lottie'){const names=await fs.readdir(result.output);assert.equal(names.length,3);const m=await sharp(path.join(result.output,names[0])).metadata();assert.equal(m.width,64);}
+    else if(format==='png'&&tool==='lottie'){const names=await fs.readdir(result.output);assert.equal(names.length,3);const m=await sharp(path.join(result.output,names[0])).metadata();assert.equal(m.width,64);const pixel=await sharp(path.join(result.output,names[0])).extract({left:32,top:32,width:1,height:1}).raw().toBuffer();assert.equal(pixel[0],255);assert.equal(pixel[1],0);}
     else if(format==='png'){const pixel=await sharp(result.output).extract({left:40,top:40,width:1,height:1}).raw().toBuffer();assert.equal(pixel[0],255);assert.equal(pixel[1],0,'Untrusted HTML scripts stay disabled');}
     else await encode(['-i',result.output,'-f','null','-'],root);
     report.push({tool,format,passed:true});console.log(`PASS ${tool} -> ${format}`);
