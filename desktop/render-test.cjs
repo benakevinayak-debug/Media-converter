@@ -14,7 +14,7 @@ app.whenReady().then(async()=>{
     if(format==='pdf')assert.equal((await fs.readFile(result.output)).subarray(0,4).toString(),'%PDF');
     else if(format==='png'&&tool==='lottie'){const names=await fs.readdir(result.output);assert.equal(names.length,3);const m=await sharp(path.join(result.output,names[0])).metadata();assert.equal(m.width,64);const pixel=await sharp(path.join(result.output,names[0])).extract({left:32,top:32,width:1,height:1}).raw().toBuffer();assert.equal(pixel[0],255);assert.equal(pixel[1],0);}
     else if(format==='png'){const pixel=await sharp(result.output).extract({left:40,top:40,width:1,height:1}).raw().toBuffer();assert.equal(pixel[0],255);assert.equal(pixel[1],0,'Untrusted HTML scripts stay disabled');}
-    else await encode(['-i',result.output,'-f','null','-'],root);
+    else {await encode(['-i',result.output,'-f','null','-'],root);if(tool==='html'){const frames=path.join(root,'verify-'+format);await fs.mkdir(frames);await encode(['-i',result.output,'-frames:v','3',path.join(frames,'frame-%d.png')],root);assert.notDeepEqual(await fs.readFile(path.join(frames,'frame-1.png')),await fs.readFile(path.join(frames,'frame-3.png')),'CSS animation must move between captured frames');}}
     report.push({tool,format,passed:true});console.log(`PASS ${tool} -> ${format}`);
    }
   }

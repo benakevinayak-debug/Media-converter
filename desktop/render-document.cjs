@@ -22,8 +22,10 @@ function createDocumentRenderer({BrowserWindow,session}){
   isolated.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!details.url.startsWith('data:')}));
   const window=new BrowserWindow({show:false,frame:false,transparent:true,backgroundColor:'#00000000',width:o.width,height:o.height,useContentSize:true,webPreferences:{session:isolated,nodeIntegration:false,contextIsolation:true,sandbox:true,javascript:tool==='lottie',backgroundThrottling:false,webSecurity:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+  const animations=[];
   try{
    if(tool==='html'){
+    if(['mp4','webm'].includes(o.format)){window.webContents.debugger.attach('1.3');window.webContents.debugger.on('message',(_event,method,params)=>{if(method==='Animation.animationStarted')animations.push(params.animation.id)});await window.webContents.debugger.sendCommand('Animation.enable');await window.webContents.debugger.sendCommand('Animation.setPlaybackRate',{playbackRate:0});}
     await window.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(`<meta http-equiv="Content-Security-Policy" content="${htmlPolicy}">${source}`));
     await delay(150);
     if(o.format==='pdf')return {bytes:await window.webContents.printToPDF({printBackground:true,preferCSSPageSize:true})};
@@ -39,7 +41,7 @@ function createDocumentRenderer({BrowserWindow,session}){
    const frames=path.join(temporary,'frames');await fs.mkdir(frames);
    for(let i=0;i<count;i++){
     if(data)await window.webContents.executeJavaScript(`animation.goToAndStop(${i/o.fps*data.fr},true)`);
-    else await window.webContents.executeJavaScript(`document.getAnimations().forEach(a=>{a.pause();a.currentTime=${i/o.fps*1000}})`);
+    else if(animations.length)await window.webContents.debugger.sendCommand('Animation.seekAnimations',{animations,currentTime:i/o.fps*1000});
     await delay(5);
     const capture=await window.webContents.capturePage();await fs.writeFile(path.join(frames,`frame-${String(i+1).padStart(6,'0')}.png`),capture.toPNG());
    }
