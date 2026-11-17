@@ -1,10 +1,13 @@
-const { app, BrowserWindow, protocol, net, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, protocol, net, ipcMain, dialog, shell, session } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { storeDisplayName = 'MediaConvert' } = require('../package.json');
 const displayName = process.windowsStore ? storeDisplayName : 'MediaConvert';
 const { MediaFiles } = require('./files.cjs');
 const media = new MediaFiles();
+const { AssetTools, TOOLS } = require('./asset-tools.cjs');
+const { createDocumentRenderer } = require('./render-document.cjs');
+let assets;
 let mainWindow;
 const commandPaths = argv => {
   const index = argv.indexOf('--convert');
@@ -53,6 +56,15 @@ app.whenReady().then(() => {
       return callback(...args);
     });
   }
+  assets = new AssetTools({render:createDocumentRenderer({BrowserWindow,session})});
+  handle('tools:choose', async (tool, folder=false) => {
+    if(!TOOLS[tool] || (folder && tool!=='batch'))throw Error('Unknown tool selection.');
+    const result=await dialog.showOpenDialog(mainWindow,{title:'Choose assets',properties:folder?['openDirectory']:['openFile','multiSelections'],filters:folder?[]:[{name:'Supported assets',extensions:TOOLS[tool].extensions}]});
+    if(result.canceled)return {files:[],warnings:[],canceled:true};
+    return assets.collect(tool,result.filePaths);
+  });
+  handle('tools:run', (tool,ids,options) => assets.run(tool,ids,options,progress=>mainWindow?.webContents.send('tools:progress',progress)));
+  handle('tools:reveal', id => {const item=assets.items.get(id);if(item?.output)shell.showItemInFolder(item.output)});
   handle('app:info', () => ({ version: app.getVersion(), displayName, creator: 'Vinayak Benake', support: 'Benakevinayak@gmail.com', store: !!process.windowsStore }));
   handle('media:import', paths => media.collect(paths));
   handle('media:choose', async folder => {
@@ -82,7 +94,7 @@ app.whenReady().then(() => {
       if (!vendors[vendor]) return new Response('Not found', { status: 404 });
       root = path.join(__dirname, '../node_modules', vendors[vendor], 'dist/umd');
       resource = parts.join('/');
-    } else if (!['index.html', 'renderer.js', 'styles.css', 'hero.png'].includes(relative)) {
+    } else if (!['index.html', 'renderer.js', 'tools.js', 'styles.css', 'hero.png'].includes(relative)) {
       return new Response('Not found', { status: 404 });
     }
     const file = path.resolve(root, resource);

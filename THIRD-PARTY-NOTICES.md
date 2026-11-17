@@ -46,3 +46,16 @@ branches. Review applicable codec patent obligations for your distribution.
 
 Original contributors retain all copyright and license rights. No endorsement by
 Microsoft, Electron, or FFmpeg is implied.
+
+## Asset tools (Windows 1.4)
+
+Sharp 0.35.5 is Apache-2.0 licensed and includes libvips and image codec libraries with their own licenses. SVGO 4.1.0 and Lottie Web 5.13.0 are MIT licensed. Native FFmpeg is provided by ffmpeg-static 5.3.0 (GPL-3.0-or-later); the actual FFmpeg version/build options depend on the platform binary. The Windows build records these and copies the upstream platform notices into `licenses/asset-tools/`.
+
+Sources and build recipes:
+- https://github.com/lovell/sharp/tree/v0.35.5
+- https://github.com/lovell/sharp-libvips
+- https://github.com/svg/svgo/tree/v4.1.0
+- https://github.com/airbnb/lottie-web/tree/v5.13.0
+- https://github.com/eugeneware/ffmpeg-static/releases/tag/b6.1.1
+
+These notices and source links do not replace complete corresponding-source, relinking or other obligations for the exact GPL/LGPL binaries. The publisher must review and satisfy these before public distribution; the Store license-review check remains pending.

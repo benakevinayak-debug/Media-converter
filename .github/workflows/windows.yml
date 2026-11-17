@@ -16,6 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run test:render
+      - run: node scripts/capture-asset-notices.cjs
       - run: npm run dist:win -- --x64
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

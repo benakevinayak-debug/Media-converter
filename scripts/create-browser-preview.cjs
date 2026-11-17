@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');const path=require('node:path');
  let html=await fs.readFile(path.join(source,'index.html'),'utf8');
  const css=await fs.readFile(path.join(source,'styles.css'),'utf8');
  const renderer=await fs.readFile(path.join(source,'renderer.js'),'utf8');
+ const toolScript=await fs.readFile(path.join(source,'tools.js'),'utf8');
  const version=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')).version;
  const bridge=`window.DESIGN_PREVIEW=true;(()=>{
   let counter=0;
@@ -14,7 +15,7 @@ const fs=require('node:fs/promises');const path=require('node:path');
  })();`;
  html=html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'; img-src \'self\' data:;">');
  html=html.replace('<link rel="stylesheet" href="styles.css">',()=>'<style>'+css+'</style>');
- html=html.replace('<script src="vendor/ffmpeg/ffmpeg.js"></script><script src="renderer.js"></script>',()=>'<script>'+bridge+'</script><script>'+renderer+'</script>');
+ html=html.replace('<script src="vendor/ffmpeg/ffmpeg.js"></script><script src="renderer.js"></script><script src="tools.js"></script>',()=>'<script>'+bridge+'</script><script>'+renderer+'</script><script>'+toolScript+'</script>');
  html=html.replace('<title>MediaConvert — by Vinayak Benake</title>','<title>MediaConvert 1.3 — Desktop UI Preview</title>');
  await fs.mkdir(path.join(root,'preview'),{recursive:true});await fs.writeFile(path.join(root,'preview/MediaConvert-Preview.html'),html);
  console.log('Created self-contained desktop UI preview:',Buffer.byteLength(html),'bytes');
