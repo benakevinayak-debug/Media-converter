@@ -3,6 +3,16 @@ const CORE_BASE='app://desktop/vendor/core';
 const VID=['mp4','mov','mkv','webm','avi'],AUD=['mp3','wav','flac','aac','m4a','ogg','opus'];
 const FORMATS=[...VID,'gif',...AUD];
 let fmt='mp4',qual='auto',files=[],ffmpeg=null,busy=false,logBuf=[],filter='all',query='',stopAfterFile=false;
+const SETTINGS_KEY='mediaconvert-preferences-v1';
+const DEFAULTS={format:'mp4',quality:'auto',theme:'dark',fast:true,openFolder:false};
+let preferences={...DEFAULTS};
+try{const saved=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+ if(FORMATS.includes(saved.format))preferences.format=saved.format;
+ if(['auto','high','medium','low'].includes(saved.quality))preferences.quality=saved.quality;
+ const theme=saved.theme||localStorage.getItem('mediaconvert-1.3-theme');if(['dark','light'].includes(theme))preferences.theme=theme;
+ for(const key of ['fast','openFolder'])if(typeof saved[key]==='boolean')preferences[key]=saved[key];
+}catch{}
+fmt=preferences.format;qual=preferences.quality;
 const preview=window.DESIGN_PREVIEW===true;
 const icon=name=>`<svg class="icon" aria-hidden="true"><use href="#${name}"/></svg>`;
 const fmtSize=bytes=>bytes>=1073741824?(bytes/1073741824).toFixed(2)+' GB':bytes>=1048576?(bytes/1048576).toFixed(1)+' MB':bytes?Math.max(1,Math.round(bytes/1024))+' KB':'0 KB';
@@ -23,12 +33,12 @@ function updateTotals(){
  $('session-detail').textContent=c.all?`${c.completed} of ${c.all} completed`:'Your files stay on your device';
  const progress=c.all?c.completed/c.all*100:0;$('session-progress').style.width=progress+'%';$('session-progress').parentElement.setAttribute('aria-valuenow',String(Math.round(progress)));
  $('queue-summary').textContent=`${c.all} ${c.all===1?'file':'files'} · ${selected} selected`;
- $('go').disabled=busy||!selected||preview;
+ $('go').disabled=busy||window.assetToolBusy||!selected||preview;
  $('go-label').textContent=preview?'Windows app required':busy?'Converting…':selected?`Convert ${selected} ${selected===1?'File':'Files'}`:c.all?'Select files to convert':'Add files to begin';
  $('clear').disabled=busy||!files.length;$('stop').hidden=!busy;$('stop').disabled=stopAfterFile;
  const pending=files.filter(f=>!f.done);$('select-all').disabled=busy||!pending.length;$('select-all').checked=!!pending.length&&pending.every(f=>f.selected);$('select-all').indeterminate=pending.some(f=>f.selected)&&!pending.every(f=>f.selected);
- $('format').disabled=busy;$('fast').disabled=busy;$('open-folder').disabled=busy;
- document.querySelectorAll('#quals button,[data-category],[data-preset]').forEach(b=>b.disabled=busy);
+ $('preferences-fields').disabled=busy||window.assetToolBusy;$('format').disabled=busy;$('fast').disabled=busy;$('open-folder').disabled=busy;
+ document.querySelectorAll('#quals button,[data-category],[data-preset]').forEach(b=>b.disabled=busy);window.refreshAssetTools?.();
 }
 function visibleFiles(){return files.filter(f=>{
  const phase=filter==='all'||(filter==='completed'?f.done:f.phase===filter);
@@ -70,7 +80,7 @@ function setSt(f,text,cls=''){f.status=text;f.cls=cls;statusView(f)}
 function setBar(f,value){f.p=Math.max(0,Math.min(1,Number.isFinite(value)?value:0));if(!f.el)return;const bar=f.el.querySelector('.bar');if(bar){bar.querySelector('i').style.width=f.p*100+'%';bar.setAttribute('aria-valuenow',String(Math.round(f.p*100)));f.el.querySelector('.percent').textContent=Math.round(f.p*100)+'%'}}
 function reveal(f){window.desktop.reveal(f.file.id).catch(error=>{$('msg').textContent=error.message})}
 function setFilter(value){filter=value;document.querySelectorAll('[data-filter]').forEach(b=>{const active=b.dataset.filter===value;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});render()}
-function activateNav(id){document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.id===id));$('queue-title').firstChild.textContent=id==='history'?'History ':'Queue '}
+function activateNav(id){$('converter').hidden=['settings','tools'].includes(id);$('settings-page').hidden=id!=='settings';$('tools-page').hidden=id!=='tools';window.refreshAssetTools?.();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.id===id));$('queue-title').firstChild.textContent=id==='history'?'History ':'Queue '}
 function setFormat(value){
  if(busy||!FORMATS.includes(value))return;fmt=value;$('format').value=value;files.filter(f=>!f.done).forEach(f=>f.ext=value);
  const category=AUD.includes(value)?'audio':value==='gif'?'gif':'video';
@@ -154,7 +164,7 @@ async function run(inName,outName,a){logBuf.length=0;let code;
 
 function showError(){ $('diagnostics').hidden=false;$('diagnostics').open=true; }
 $('go').onclick=async()=>{
- if(busy||preview)return;const batch=selectedFiles();if(!batch.length)return;
+ if(busy||window.assetToolBusy||preview)return;const batch=selectedFiles();if(!batch.length)return;
  busy=true;stopAfterFile=false;const q=qual==='auto'?'medium':qual,fast=$('fast').checked,open=$('open-folder').checked;let succeeded=0,failed=0,lastSaved=null;
  // Snapshot per-file choices so new imports wait for the next batch.
  const jobs=batch.map(f=>({f,ext:f.ext||fmt}));render();
@@ -184,16 +194,30 @@ $('go').onclick=async()=>{
 function showModal(id){$(id).showModal()}
 $('about').onclick=$('footer-about').onclick=()=>showModal('about-modal');
 $('privacy').onclick=()=>showModal('privacy-modal');
-$('tools').onclick=()=>showModal('tools-modal');
+$('tools').onclick=()=>{activateNav('tools');$('tools-page-title').focus()};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 $('nav-convert').onclick=()=>{activateNav('nav-convert');setFilter('all');$('add-files').focus()};
 $('nav-files').onclick=()=>{activateNav('nav-files');setFilter('all');$('queue-title').scrollIntoView({block:'nearest',behavior:'smooth'})};
 $('history').onclick=()=>{activateNav('history');query='';$('search').value='';setFilter('completed');$('queue-title').scrollIntoView({block:'nearest',behavior:'smooth'});$('msg').textContent='History shows completed files in the current queue. Saved files remain on disk after the queue is cleared.'};
-$('settings').onclick=()=>{activateNav('settings');$('settings-title').focus();$('settings-title').scrollIntoView({block:'nearest',behavior:'smooth'})};
-document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{setFormat(b.dataset.preset);setQuality(b.dataset.preset==='mp4'?'low':'medium');$('tools-modal').close();$('msg').textContent='Preset applied to queued files. Add media or click Convert.'});
+$('settings').onclick=()=>{fillPreferences();activateNav('settings');$('preferences-title').focus()};
+$('preferences-back').onclick=()=>{activateNav('nav-convert');$('add-files').focus()};
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{setFormat(b.dataset.preset);setQuality(b.dataset.preset==='mp4'?'low':'medium');$('tools-modal').close();activateNav('nav-convert');$('msg').textContent='Preset applied to queued files. Add media or click Convert.'});
 document.addEventListener('keydown',event=>{if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!['INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)&&!document.querySelector('dialog[open]')){event.preventDefault();$('search').focus()}});
-function setTheme(value){document.documentElement.dataset.theme=value;$('theme').setAttribute('aria-label',`Switch to ${value==='dark'?'light':'dark'} theme`);try{localStorage.setItem('mediaconvert-1.3-theme',value)}catch{}}
-let initialTheme='dark';try{initialTheme=localStorage.getItem('mediaconvert-1.3-theme')||initialTheme}catch{}
-setTheme(initialTheme);$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+function persistPreferences(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(preferences));return true}catch{return false}}
+function setTheme(value){document.documentElement.dataset.theme=value;$('theme').setAttribute('aria-label',`Switch to ${value==='dark'?'light':'dark'} theme`)}
+function fillPreferences(){
+ $('pref-format').value=preferences.format;$('pref-quality').value=preferences.quality;$('pref-theme').value=preferences.theme;
+ $('pref-fast').checked=preferences.fast;$('pref-open-folder').checked=preferences.openFolder;
+}
+function applyPreferences(){setTheme(preferences.theme);setFormat(preferences.format);setQuality(preferences.quality);$('fast').checked=preferences.fast;$('open-folder').checked=preferences.openFolder;fillPreferences()}
+appendOptions($('pref-format'),preferences.format,true);
+$('preferences-form').onsubmit=event=>{
+ event.preventDefault();if(busy)return;
+ preferences={format:$('pref-format').value,quality:$('pref-quality').value,theme:$('pref-theme').value,fast:$('pref-fast').checked,openFolder:$('pref-open-folder').checked};
+ applyPreferences();$('preferences-status').textContent=persistPreferences()?'Settings saved. Applied to pending files and future sessions.':'Settings applied for this session. Local storage is unavailable; preferences could not be saved.';
+};
+$('preferences-reset').onclick=()=>{if(busy)return;preferences={...DEFAULTS};applyPreferences();$('preferences-status').textContent=persistPreferences()?'Default settings restored and saved.':'Defaults applied for this session. Local storage is unavailable.';};
+applyPreferences();
+$('theme').onclick=()=>{preferences.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';setTheme(preferences.theme);persistPreferences();fillPreferences()};
 if(window.desktop.info)window.desktop.info().then(info=>{if(info.displayName){document.querySelector('.brand strong').textContent=info.displayName;$('about-title').textContent=info.displayName;document.title=info.displayName+' — by Vinayak Benake';}$('version-label').textContent='Version '+info.version;$('about-version').textContent='Version '+info.version}).catch(()=>{});
 render();updateHints();

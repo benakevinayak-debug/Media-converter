@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# Generated from the native dependencies on the packaging platform
+licenses/asset-tools/

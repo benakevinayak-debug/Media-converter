@@ -30,7 +30,7 @@ test('Explorer launch queues paths with spaces, forwards later launches, and res
   }
   const electron = { app, BrowserWindow: Window, protocol: { registerSchemesAsPrivileged() {}, handle() {} }, net: {}, ipcMain: { handle: (key, fn) => handlers.set(key, fn) }, dialog: {}, shell: {} };
   vm.runInNewContext(await fs.readFile(path.join(__dirname, 'main.cjs'), 'utf8'), {
-    require: name => name === 'electron' ? electron : name === './files.cjs' ? require('./files.cjs') : require(name),
+    require: name => name === 'electron' ? electron : require(name),
     process: { argv: ['MediaConvert.exe', '--convert', first], platform: 'win32' }, __dirname, Response, URL
   });
   await new Promise(resolve => setImmediate(resolve));
