@@ -1,4 +1,4 @@
-# MediaConvert 1.3.0
+# MediaConvert 1.4.0
 
 Created by **Vinayak Benake** · Support: **Benakevinayak@gmail.com**
 
@@ -8,7 +8,7 @@ The FFmpeg WebAssembly engine is bundled, so conversion works offline.
 
 ## Install the Windows app
 
-Extract the final ZIP and run `MediaConvert-Setup-1.3.0-x64.exe`. The setup is an
+Extract the final ZIP and run `MediaConvert Setup 1.4.0.exe`. The setup is an
 unsigned, standalone x64 Windows installer. It installs for the current user,
 creates shortcuts, adds Explorer file/folder menu entries, and supplies an
 uninstaller. Close MediaConvert before installing or uninstalling. Requires
