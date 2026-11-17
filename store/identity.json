@@ -1,8 +1,8 @@
 {
-  "identityName": "REPLACE_WITH_PARTNER_CENTER_PACKAGE_NAME",
-  "publisher": "CN=REPLACE_WITH_PARTNER_CENTER_PUBLISHER_ID",
-  "publisherDisplayName": "Vinayak Benake",
-  "displayName": "MediaConvert",
+  "identityName": "Vinayakbenake.MediaconverterbyVb",
+  "publisher": "CN=1417D9D2-C2A7-4093-9A0C-D69E232CD582",
+  "publisherDisplayName": "Vinayak benake",
+  "displayName": "QuickConvert Media",
   "supportEmail": "Benakevinayak@gmail.com",
   "privacyPolicyUrl": "REPLACE_WITH_PUBLIC_HTTPS_PRIVACY_POLICY_URL",
   "sourceCodeUrl": "https://github.com/benakevinayak-debug/Media-converter",
@@ -12,5 +12,6 @@
     "keyboardAndScreenReaderReviewed": false,
     "correspondingSourceAndLicensesReviewed": false,
     "listingAndAgeRatingsReviewed": false
-  }
+  },
+  "storeId": "9NNM1PVXN2HR"
 }

@@ -1,5 +1,7 @@
 name: Build Microsoft Store MSIX
 on:
+  push:
+    branches: [codex/store-msix-1.3]
   workflow_dispatch:
     inputs:
       identity_name:
@@ -33,6 +35,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Configure reserved identity
+        if: github.event_name == 'workflow_dispatch'
         env:
           STORE_NAME: ${{ inputs.identity_name }}
           STORE_PUBLISHER: ${{ inputs.publisher }}
@@ -46,5 +49,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: MediaConvert-Microsoft-Store-MSIX
-          path: dist/*.msix
+          path: |
+            dist/*.msix
+            dist/MSIX-IDENTITY-REPORT.json
+            dist/MSIX-AppxManifest.xml
+            dist/Upload-Instructions.txt
           if-no-files-found: error
