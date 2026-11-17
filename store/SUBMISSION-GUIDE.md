@@ -1,4 +1,4 @@
-# Microsoft Store submission — MediaConvert 1.2.0
+# Microsoft Store submission — MediaConvert 1.3.0
 
 Prepared for Vinayak Benake. Support: Benakevinayak@gmail.com.
 
@@ -49,8 +49,8 @@ npm run store:build
 ```
 
 The script checks identity fields, packages the x64 app, creates a manifest with
-version `1.2.0.0`, and calls the SDK's MakeAppx with validation enabled. It emits
-`dist/MediaConvert-1.2.0-x64.msix`. The package is intentionally unsigned for
+version `1.3.0.0`, and calls the SDK's MakeAppx with validation enabled. It emits
+`dist/MediaConvert-1.3.0-x64.msix`. The package is intentionally unsigned for
 Store upload. Microsoft signs accepted packages. A test certificate matching
 your manifest publisher is needed for local sideload testing; do not distribute
 a development certificate as a trusted public release.

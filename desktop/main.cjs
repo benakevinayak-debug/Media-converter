@@ -29,8 +29,8 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: {
 
 function createWindow() {
   const window = mainWindow = new BrowserWindow({
-    width: 1280, height: 900, minWidth: 640, minHeight: 650,
-    backgroundColor: '#fff8f5',
+    width: 1360, height: 860, minWidth: 900, minHeight: 640,
+    backgroundColor: '#13111d',
     title: 'MediaConvert — by Vinayak Benake', icon: path.join(__dirname, 'app-icon.png'),
     autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), nodeIntegration: false, contextIsolation: true, sandbox: true }

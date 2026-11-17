@@ -15,10 +15,18 @@
     "Light and dark themes with an accessible conversion queue",
     "Created by Vinayak Benake"
   ],
-  "keywords": ["media converter", "video converter", "audio converter", "offline", "MP4", "MP3", "FFmpeg"],
+  "keywords": [
+    "media converter",
+    "video converter",
+    "audio converter",
+    "offline",
+    "MP4",
+    "MP3",
+    "FFmpeg"
+  ],
   "supportEmail": "Benakevinayak@gmail.com",
   "privacyPolicy": "Host privacy-policy.html at a public HTTPS URL and enter it in Partner Center and identity.json.",
-  "releaseNotes": "Version 1.2.0 adds a peach-and-coral interface with an original conversion illustration, dark mode, creator credits, support information, and a Microsoft Store packaging workflow. Folder conversion, output beside originals, and safe numbered filenames are retained.",
+  "releaseNotes": "Version 1.3.0 introduces a dark purple desktop workspace with a sidebar, queue search and filters, selected-file conversion, per-file output formats, Tools presets, graceful stop-after-file, and an option to reveal the last output after a batch. Credits for Vinayak Benake remain visible.",
   "ageRatings": "Publisher must complete the IARC questionnaire accurately in Partner Center; no rating is preassigned.",
   "pricingAndMarkets": "Publisher must choose pricing and markets in Partner Center.",
   "minimumSystem": "Windows 10 version 2004 (build 19041) or later; x64; keyboard and mouse or compatible input.",

@@ -2,7 +2,7 @@ name: Download HTML preview
 on:
   workflow_dispatch:
   push:
-    branches: [codex/windows-desktop-1.2]
+    branches: [codex/windows-desktop-1.2, codex/desktop-purple-1.3]
     paths:
       - preview/**
       - .github/workflows/html-preview.yml

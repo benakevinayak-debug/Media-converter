@@ -1,41 +1,28 @@
-# Validation — MediaConvert 1.2.0
+# MediaConvert 1.3.0 desktop validation
 
-## Completed
+Completed locally:
 
-- 5 Node tests passed: folder recursion, Unicode paths, duplicate selections,
-  collision-safe output creation, original-file preservation, request validation,
-  cold/later Explorer launch queues (mock Electron host), Store placeholder
-  rejection, release-check requirements, and escaped manifest generation.
-- Headless Chromium tests used the real desktop HTML/CSS/renderer and a test HTTP
-  bridge to the real filesystem service. A WAV with a Hindi filename converted
-  to MP3 and saved beside its input. The Show in folder button rendered.
-- A generated one-second video/audio clip converted to all 13 output formats:
-  MP4, MOV, MKV, WebM, AVI, GIF, MP3, WAV, FLAC, AAC, M4A, OGG, OPUS. Every command
-  returned success and produced readable output bytes. This is a smoke check,
-  not validation of every codec, source type, duration, or large-file behavior.
-- Browser interaction checks passed for keyboard activation of file selection,
-  About credits, Privacy dialog, theme switching, and no horizontal overflow at
-  1280, 920, and 640 CSS pixels. Preview PNGs were captured from the interface.
-- Fixed numeric FFmpeg CLI arguments by converting each argument to a string
-  before execution, preventing video encoding calls from failing at the bridge.
-- Windows x64 app packaged with creator/version information and branded icons.
-- Native NSIS setup compiled with embedded app files and an uninstaller. The
-  final archive was checked for integrity and expected contents.
-- Store manifest template is well-formed XML. Placeholder account fields are
-  intentionally rejected; no fake upload-ready MSIX is generated.
+- Five Node tests pass for file/folder imports, collision-safe saves, source
+  preservation, launch queues, trusted IPC requests, and Store metadata handling.
+- The real HTML/CSS/renderer was exercised in headless Chromium with a local
+  test bridge to the actual filesystem service. Two WAV inputs converted to
+  different per-file outputs (MP3 and FLAC), beside their originals. The FLAC
+  signature was checked. Existing inputs were preserved.
+- Stop-after-current-file finished the first file and left the second queued.
+  Resuming completed that file. The open-folder option invoked the native bridge
+  once for the final saved output.
+- Search, selection controls, queue filters, current-queue history, tool presets,
+  themes, creator credits, privacy, and all 13 format options were exercised.
+- A generated short video/audio sample successfully produced output in all 13
+  formats. This is a smoke test, not a claim about every source codec or file size.
+- Layouts at 1280, 960, and 640 CSS pixels had no horizontal overflow. New dark,
+  light, queue, and credits screenshots were captured from the actual interface.
 
-## Still required on Windows before public release
+GitHub's Windows workflow builds the 1.3 installer from this source and runs the
+Node suite. Browser tests use a test bridge; installation, actual Explorer
+interactions, native dialogs, screen readers, and physical-PC conversion testing
+remain required. No Windows App Certification Kit or Microsoft Store approval is
+claimed. Source/license review and reserved Store identity remain outstanding.
 
-- Run the actual setup, application, preload IPC, native file/folder dialogs,
-  drag/drop from Explorer, right-click actions, install/uninstall, and upgrade.
-- Install and test the final signed/test-signed MSIX after adding the exact
-  Partner Center identity. Run MakeAppx validation and Windows App Certification
-  Kit, then keyboard/screen-reader testing. No WACK pass is claimed here.
-- Recapture listing screenshots from the installed Windows release. The included
-  screenshots are browser-rendered previews, not Windows certification evidence.
-- Complete the public privacy URL, source/license obligations, age-rating
-  questionnaire, pricing, markets, and Partner Center listing review.
-
-Earlier Linux Electron headless launch attempts crashed in this environment.
-Browser checks do not replace the Windows application checks above. The native
-NSIS compilation avoids the Wine failure seen with the earlier installer build.
+The standalone HTML is a design preview with real local file selection, search,
+format controls, and dialogs. Conversion is explicitly disabled in that preview.

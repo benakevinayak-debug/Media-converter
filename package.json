@@ -1,6 +1,6 @@
 {
   "name": "mediaconvert-desktop",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Private offline video and audio converter",
   "author": {
     "name": "Vinayak Benake",
@@ -19,7 +19,8 @@
     "store:config": "node scripts/store-config.cjs",
     "store:check": "node scripts/store-config.cjs --submission",
     "store:build": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Store.ps1",
-    "setup:compile": "node scripts/create-setup.cjs"
+    "setup:compile": "node scripts/create-setup.cjs",
+    "preview:build": "node scripts/create-browser-preview.cjs"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "0.12.10",
