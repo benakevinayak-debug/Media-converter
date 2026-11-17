@@ -9,7 +9,7 @@ function validateLottie(data){
  const check=value=>{if(!value||typeof value!=='object')return;for(const [key,child] of Object.entries(value)){
   if(key==='x'&&typeof child==='string')throw Error('Lottie expressions are not supported. Export a baked keyframe animation.');
   if(key==='ef'&&Array.isArray(child)&&child.length)throw Error('Lottie layer effects are not supported.');
-  if(key==='p'&&typeof child==='string'&&!child.startsWith('data:')&&('u' in value||'e' in value))throw Error('Lottie image assets must be embedded as data URLs.');
+  if(key==='p'&&typeof child==='string'&&!child.startsWith('data:'))throw Error('Lottie image assets must be embedded as data URLs.');
   if(key==='fPath'&&typeof child==='string'&&!child.startsWith('data:'))throw Error('External Lottie fonts are not supported.');
   check(child);
  }};check(data);return data;
@@ -20,7 +20,7 @@ function createDocumentRenderer({BrowserWindow,session}){
   const data=tool==='lottie'?validateLottie(JSON.parse(source)):null;
   const isolated=session.fromPartition('asset-render-'+randomUUID());isolated.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   isolated.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!details.url.startsWith('data:')}));
-  const window=new BrowserWindow({show:false,width:o.width,height:o.height,useContentSize:true,webPreferences:{session:isolated,nodeIntegration:false,contextIsolation:true,sandbox:true,javascript:tool==='lottie',backgroundThrottling:false,webSecurity:true}});
+  const window=new BrowserWindow({show:false,frame:false,transparent:true,backgroundColor:'#00000000',width:o.width,height:o.height,useContentSize:true,webPreferences:{session:isolated,nodeIntegration:false,contextIsolation:true,sandbox:true,javascript:tool==='lottie',backgroundThrottling:false,webSecurity:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   try{
    if(tool==='html'){

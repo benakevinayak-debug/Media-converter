@@ -98,7 +98,8 @@
         "from": "store/privacy-policy.html",
         "to": "Privacy-Policy.html"
       }
-    ]
+    ],
+    "beforePack": "./scripts/capture-asset-notices.cjs"
   },
   "homepage": "https://github.com/benakevinayak-debug/Media-converter",
   "copyright": "Copyright \u00a9 2026 Vinayak Benake",

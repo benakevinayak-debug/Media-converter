@@ -1,5 +1,5 @@
 const fs=require('node:fs/promises');const path=require('node:path');const {execFileSync}=require('node:child_process');
-(async()=>{
+async function capture(){
  const dest=path.resolve('licenses/asset-tools');await fs.mkdir(dest,{recursive:true});
  for(const [module,names] of Object.entries({'sharp':['LICENSE'],'svgo':['LICENSE'],'lottie-web':['LICENSE.md'],'ffmpeg-static':['LICENSE']})){
   for(const name of names)await fs.copyFile(path.join('node_modules',module,name),path.join(dest,module+'-'+name.replaceAll('/','-')));
@@ -14,4 +14,6 @@ const fs=require('node:fs/promises');const path=require('node:path');const {exec
  const build=execFileSync(binary,['-version'],{encoding:'utf8',windowsHide:true});
  await fs.writeFile(path.join(dest,'FFmpeg-build.txt'),build);
  console.log('Recorded platform-specific FFmpeg build and asset dependency notices.');
-})().catch(e=>{console.error(e);process.exitCode=1});
+}
+module.exports=capture;
+if(require.main===module)capture().catch(e=>{console.error(e);process.exitCode=1});
