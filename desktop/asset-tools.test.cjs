@@ -1,6 +1,6 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs/promises');const path=require('node:path');const os=require('node:os');
 const sharp=require('sharp');const {AssetTools,encode,options}=require('./asset-tools.cjs');const {validateLottie}=require('./render-document.cjs');
-async function setup(t){const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'assets-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
+async function setup(t){const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'assets-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true,maxRetries:3,retryDelay:100}));return root;}
 async function run(service,tool,files,o={}){const chosen=await service.collect(tool,files);assert.equal(chosen.warnings.length,0);return service.run(tool,chosen.files.map(f=>f.id),o);}
 const valid=results=>{for(const r of results)assert.ok(!r.error,JSON.stringify(results));return results;};
 test('SVG optimizer preserves SMIL animation targets and never overwrites the source',async t=>{

@@ -4,6 +4,8 @@ const os = require('node:os');
 const { randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
 const sharp = require('sharp');
+// Release image file handles promptly on Windows, including temporary frame files.
+sharp.cache({files:0});
 const { optimize } = require('svgo');
 const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked');
 const IMAGE = ['png','jpg','jpeg','webp','avif','gif','tif','tiff'];
