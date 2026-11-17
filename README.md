@@ -15,7 +15,7 @@ uninstaller. Close MediaConvert before installing or uninstalling. Requires
 Windows 10 version 2004 (build 19041) or later.
 
 Drag files or folders into the app, choose a format, and click Convert. Subfolders
-are included. Outputs use `name-converted.ext` beside the original, with numbered
+are included. Outputs use `name.ext` beside the original, preserving the original basename and changing only its extension, with numbered
 names when needed. Originals and previous outputs are preserved. Read-only source
 folders produce a save error; move media to a writable folder and retry.
 
@@ -86,3 +86,7 @@ Open folder setting reveals the last saved result after a batch finishes.
 Generate the self-contained HTML design preview with
 `node scripts/create-browser-preview.cjs`. It supports the interface and local
 file selection; conversion is explicitly disabled in the browser preview.
+
+### Windows 1.3.2
+
+The Settings page saves the default output format, quality, theme, Smart stream copy, and open-folder preference locally. Save applies these choices to pending files and future sessions. Restore defaults resets them. Conversion controls in the main workspace can override these defaults for the current session. Outputs keep their source basename; a number is added only if the destination already exists, including same-format conversions. Originals are never overwritten.

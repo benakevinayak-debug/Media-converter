@@ -2,7 +2,7 @@ name: Build Windows installer
 on:
   workflow_dispatch:
   push:
-    branches: [codex/windows-desktop-1.2, codex/desktop-purple-1.3]
+    branches: [codex/windows-desktop-1.2, codex/desktop-purple-1.3, codex/windows-settings-1.3.2]
 permissions:
   contents: read
 jobs:

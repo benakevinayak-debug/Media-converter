@@ -41,7 +41,7 @@ class MediaFiles {
     const parsed = path.parse(item.path);
     // Exclusive creation protects both the original and previous conversions.
     for (let index = 0; ; index++) {
-      const destination = path.join(parsed.dir, `${parsed.name}-converted${index ? ` (${index})` : ''}.${ext}`);
+      const destination = path.join(parsed.dir, `${parsed.name}${index ? ` (${index})` : ''}.${ext}`);
       let handle;
       try { handle = await fs.open(destination, 'wx'); }
       catch (error) { if (error.code === 'EEXIST') continue; throw error; }

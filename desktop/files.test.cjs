@@ -27,16 +27,30 @@ test('save stays beside the source, never overwrites originals or existing outpu
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const original = path.join(root, 'my clip.wav');
   await fs.writeFile(original, 'keep original');
-  await fs.writeFile(path.join(root, 'my clip-converted.wav'), 'keep previous');
+  await fs.writeFile(path.join(root, 'my clip (1).wav'), 'keep previous');
   const media = new MediaFiles();
   const { files: [file] } = await media.collect([original]);
   const outputs = await Promise.all([media.save(file.id, 'wav', new Uint8Array([1, 2])), media.save(file.id, 'wav', new Uint8Array([3, 4]))]);
   assert.equal(new Set(outputs).size, 2);
-  assert.ok(outputs.includes(path.join(root, 'my clip-converted (1).wav')));
-  assert.ok(outputs.includes(path.join(root, 'my clip-converted (2).wav')));
+  assert.ok(outputs.includes(path.join(root, 'my clip (2).wav')));
+  assert.ok(outputs.includes(path.join(root, 'my clip (3).wav')));
   assert.equal(await fs.readFile(original, 'utf8'), 'keep original');
-  assert.equal(await fs.readFile(path.join(root, 'my clip-converted.wav'), 'utf8'), 'keep previous');
+  assert.equal(await fs.readFile(path.join(root, 'my clip (1).wav'), 'utf8'), 'keep previous');
   await assert.rejects(media.save(file.id, '../exe', new Uint8Array([1])));
   await assert.rejects(media.save(file.id, 'mp3', new Uint8Array()));
   await assert.rejects(media.read('unselected'));
+});
+
+test('conversion changes only the extension, including Unicode and multi-dot filenames', async t => {
+  const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'mediaconvert-')));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const media = new MediaFiles();
+  for (const name of ['My holiday.final.MOV', 'संगीत 2026.wav']) {
+    const original = path.join(root, name);
+    await fs.writeFile(original, 'original');
+    const { files: [file] } = await media.collect([original]);
+    const output = await media.save(file.id, 'mp3', new Uint8Array([1, 2, 3]));
+    assert.equal(output, path.join(root, path.parse(name).name + '.mp3'));
+    assert.equal(await fs.readFile(original, 'utf8'), 'original');
+  }
 });
