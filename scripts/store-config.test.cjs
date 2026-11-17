@@ -16,3 +16,9 @@ test('manifest escapes publisher data and declares local conversion capability a
   assert.match(xml,/--convert &quot;%1&quot;/);
   assert.ok(!xml.includes('{{'));
 });
+
+test('missing public privacy URL permits packaging but blocks final submission', () => {
+  const config = {...valid, privacyPolicyUrl: 'REPLACE_WITH_PUBLIC_HTTPS_PRIVACY_POLICY_URL'};
+  assert.deepEqual(validateIdentity(config), []);
+  assert.ok(validateIdentity(config, true).some(error => error.includes('public HTTPS')));
+});

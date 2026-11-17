@@ -3,13 +3,15 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 function validateIdentity(config, submission = false) {
   const errors = [];
-  for (const key of ['identityName', 'publisher', 'publisherDisplayName', 'displayName', 'supportEmail', 'privacyPolicyUrl']) {
+  for (const key of ['identityName', 'publisher', 'publisherDisplayName', 'displayName', 'supportEmail']) {
     if (!config[key] || /REPLACE_|PLACEHOLDER|TODO/i.test(config[key])) errors.push(`Set ${key} in store/identity.json.`);
   }
   if (config.identityName && !/^[A-Za-z0-9.-]{3,50}$/.test(config.identityName)) errors.push('identityName must be the exact 3–50 character Partner Center package name.');
   if (config.publisher && !/^CN=.+/.test(config.publisher)) errors.push('publisher must be the exact CN=… value from Partner Center.');
   if (config.supportEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.supportEmail)) errors.push('Set a valid supportEmail.');
-  if (config.privacyPolicyUrl && !/^https:\/\//.test(config.privacyPolicyUrl)) errors.push('Host the privacy policy at a public HTTPS URL.');
+  // A privacy URL is required by the Store listing, not by the MSIX manifest.
+  // Keep it a submission check so an identity-correct package can be built first.
+  if (submission && (!config.privacyPolicyUrl || /REPLACE_|PLACEHOLDER|TODO/i.test(config.privacyPolicyUrl) || !/^https:\/\//.test(config.privacyPolicyUrl))) errors.push('Host the privacy policy at a public HTTPS URL.');
   if (submission) {
     for (const key of ['windowsInstallationAndUninstallTested', 'windowsAppCertificationKitPassed', 'keyboardAndScreenReaderReviewed', 'correspondingSourceAndLicensesReviewed', 'listingAndAgeRatingsReviewed']) {
       if (config.releaseChecks?.[key] !== true) errors.push(`Complete release check: ${key}.`);

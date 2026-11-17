@@ -195,5 +195,5 @@ document.addEventListener('keydown',event=>{if(event.key==='/'&&!event.ctrlKey&&
 function setTheme(value){document.documentElement.dataset.theme=value;$('theme').setAttribute('aria-label',`Switch to ${value==='dark'?'light':'dark'} theme`);try{localStorage.setItem('mediaconvert-1.3-theme',value)}catch{}}
 let initialTheme='dark';try{initialTheme=localStorage.getItem('mediaconvert-1.3-theme')||initialTheme}catch{}
 setTheme(initialTheme);$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
-if(window.desktop.info)window.desktop.info().then(info=>{$('version-label').textContent='Version '+info.version;$('about-version').textContent='Version '+info.version}).catch(()=>{});
+if(window.desktop.info)window.desktop.info().then(info=>{if(info.displayName){document.querySelector('.brand strong').textContent=info.displayName;$('about-title').textContent=info.displayName;document.title=info.displayName+' — by Vinayak Benake';}$('version-label').textContent='Version '+info.version;$('about-version').textContent='Version '+info.version}).catch(()=>{});
 render();updateHints();

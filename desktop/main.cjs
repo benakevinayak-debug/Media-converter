@@ -1,6 +1,8 @@
 const { app, BrowserWindow, protocol, net, ipcMain, dialog, shell } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { storeDisplayName = 'MediaConvert' } = require('../package.json');
+const displayName = process.windowsStore ? storeDisplayName : 'MediaConvert';
 const { MediaFiles } = require('./files.cjs');
 const media = new MediaFiles();
 let mainWindow;
@@ -31,7 +33,7 @@ function createWindow() {
   const window = mainWindow = new BrowserWindow({
     width: 1360, height: 860, minWidth: 900, minHeight: 640,
     backgroundColor: '#13111d',
-    title: 'MediaConvert — by Vinayak Benake', icon: path.join(__dirname, 'app-icon.png'),
+    title: displayName + ' — by Vinayak Benake', icon: path.join(__dirname, 'app-icon.png'),
     autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), nodeIntegration: false, contextIsolation: true, sandbox: true }
   });
@@ -51,7 +53,7 @@ app.whenReady().then(() => {
       return callback(...args);
     });
   }
-  handle('app:info', () => ({ version: app.getVersion(), creator: 'Vinayak Benake', support: 'Benakevinayak@gmail.com', store: !!process.windowsStore }));
+  handle('app:info', () => ({ version: app.getVersion(), displayName, creator: 'Vinayak Benake', support: 'Benakevinayak@gmail.com', store: !!process.windowsStore }));
   handle('media:import', paths => media.collect(paths));
   handle('media:choose', async folder => {
     const result = await dialog.showOpenDialog(mainWindow, {
