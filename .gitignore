@@ -3,3 +3,8 @@ dist/
 
 # Generated from the native dependencies on the packaging platform
 licenses/asset-tools/
+
+# Generated native Windows JPEG engine
+build/native/
+_native-src/
+_native-build/

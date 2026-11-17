@@ -1,4 +1,4 @@
-# MediaConvert 1.4.0
+# QuickConvert Media 1.5.0
 
 Created by **Vinayak Benake** · Support: **Benakevinayak@gmail.com**
 
@@ -8,7 +8,7 @@ The FFmpeg WebAssembly engine is bundled, so conversion works offline.
 
 ## Install the Windows app
 
-Extract the final ZIP and run `MediaConvert Setup 1.4.0.exe`. The setup is an
+Extract the final ZIP and run `MediaConvert Setup 1.5.0.exe`. The setup is an
 unsigned, standalone x64 Windows installer. It installs for the current user,
 creates shortcuts, adds Explorer file/folder menu entries, and supplies an
 uninstaller. Close MediaConvert before installing or uninstalling. Requires
@@ -105,3 +105,29 @@ Open **Tools** in the sidebar to use SVG Optimizer, GIF Optimizer, HTML Converte
 - Rendering supports up to 1920×1080, 30 fps and 20 seconds, with additional total-pixel/frame limits. Temporary frames are removed after processing; an interrupted process may leave temporary files in the system temp folder.
 
 Run `npm test` for native image/animation, output naming and launch tests. On a Windows desktop, `npm run test:render` verifies real HTML → PNG/PDF/MP4/WebM and Lottie → GIF/MP4/PNG exports and requires a completed seven-export report. CI runs both before packaging the NSIS EXE.
+
+## Image Compression — Windows 1.5
+
+Open **Image Compression**, directly below **Convert**. Drop files/folders or use Add Files/Add Folder. Smart compression starts automatically by default; disable Compress on add to queue a batch and choose Lossless before starting. Results show thumbnails, actual processing stages, before/after sizes and savings, with total savings in the results header and footer. Save writes a copy through the native file dialog. Save All as ZIP includes successful results only and gives duplicate names numeric suffixes. Original files and existing exports are never overwritten. Failed images stay in the list and do not stop the next file.
+
+Format, stored dimensions, orientation, original color profiles, alpha and animation are preservation requirements. A mismatched candidate fails explicitly. If a valid candidate is not smaller, the result is the exact original bytes and is labeled **No size savings**. This local workflow uses TinyPNG as a workflow reference; it does not call Tinify or upload images.
+
+| Format | Smart | Lossless |
+| --- | --- | --- |
+| PNG/APNG | Recompresses filtered image streams without quantization or resizing; retains every ancillary chunk, ICC/EXIF, frame control, loop and delay | Same preservation path |
+| JPEG | Quality 82, with exact ICC and orientation validation; CMYK uses the lossless path | libjpeg-turbo entropy optimization, coefficient/pixel data retained |
+| WebP | Quality 82 with alpha quality 100; checks original ICC, dimensions, orientation and all frame delays/loops/alpha | Removes unused container padding without touching encoded image frames |
+| AVIF | Re-encodes only compatible 8-bit opaque stills without protected color/orientation properties; otherwise lossless container path | Removes trailing `free` boxes only, leaving all item offsets, metadata, coded pixels and animation streams intact |
+| JPEG XL | Lossless Brotli optimization of uncompressed EXIF/XML metadata boxes; preserves the complete codestream, color information and animation | Same preservation path |
+
+AVIF/JXL container optimization may produce no reduction in already compact files; these paths do not claim to recompress their pixel codestreams. JXL thumbnails use a bundled decoder. Animated AVIF thumbnails use the bundled FFmpeg.
+
+Limits: 500 images, 50 MB per file, 1 GB selected data, 40 megapixels of total decoded frame pixels per image, and 300 animation frames. Symlinks are skipped; source changes after selection are reported. Compressed results live in the system temp folder until the batch/app is cleared; interrupted applications can leave temporary files. Nothing is uploaded.
+
+### Verification
+
+`npm test` checks Smart/Lossless across five formats with P3 ICC, orientation 6, alpha gradients, APNG/WebP/JXL/AVIF animations, unchanged PNG/APNG scanline streams/decoded frames, exact no-savings bytes, unchanged sources, duplicate ZIP names, saved bytes, edited sources and failure continuation. The Windows workflow builds the pinned modern JPEG engine before these tests. Local Linux JPEG development uses the development-only jpegtran binary.
+
+After packaging, `scripts/test-packaged-compression.cjs` launches **the actual packaged Windows EXE**, which runs nine image cases in both modes, validates preservation, exercises real Save/ZIP backend operations, checks the sidebar order and displayed result rows/thumbnails, and creates `image-compression-checks.json` plus a screenshot. The report records the actual platform, package status and app version. It explicitly distinguishes these checks from native file-dialog clicks and physical installation/uninstallation, which are not automated.
+
+The self-contained HTML preview shows the page and controls; compression and native save actions require the Windows app.
