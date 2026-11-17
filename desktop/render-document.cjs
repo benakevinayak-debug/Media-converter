@@ -20,7 +20,7 @@ function createDocumentRenderer({BrowserWindow,session}){
   const data=tool==='lottie'?validateLottie(JSON.parse(source)):null;
   const isolated=session.fromPartition('asset-render-'+randomUUID());isolated.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   isolated.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!details.url.startsWith('data:')}));
-  const window=new BrowserWindow({show:false,frame:false,transparent:true,backgroundColor:'#00000000',width:o.width,height:o.height,useContentSize:true,webPreferences:{session:isolated,nodeIntegration:false,contextIsolation:true,sandbox:true,javascript:tool==='lottie',backgroundThrottling:false,webSecurity:true}});
+  const window=new BrowserWindow({show:false,frame:false,backgroundColor:'#ffffff',width:o.width,height:o.height,useContentSize:true,webPreferences:{session:isolated,nodeIntegration:false,contextIsolation:true,sandbox:true,javascript:tool==='lottie',backgroundThrottling:false,webSecurity:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   const animations=[];
   try{
