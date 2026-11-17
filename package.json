@@ -21,7 +21,7 @@
     "store:build": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Store.ps1",
     "setup:compile": "node scripts/create-setup.cjs",
     "preview:build": "node scripts/create-browser-preview.cjs",
-    "test:render": "electron desktop/render-test.cjs"
+    "test:render": "node scripts/test-document-render.cjs"
   },
   "dependencies": {
     "@ffmpeg/core": "0.12.6",

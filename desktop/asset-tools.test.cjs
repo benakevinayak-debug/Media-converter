@@ -30,6 +30,7 @@ test('PNG sequences, sprite sheets and APNG exports produce decodable animations
  for(const format of ['gif','webp','mp4','webm']){const [r]=valid(await run(service,'sequence',frames,{format,fps:5}));if(format==='webp')assert.ok((await sharp(r.output,{animated:true}).metadata()).pages>=2);else await encode(['-i',r.output,'-f','null','-'],root);}
  const apng=path.join(root,'animation.apng');await encode(['-f','lavfi','-i','testsrc2=size=64x48:rate=5:duration=0.6','-plays','0','-f','apng',apng],root);
  for(const format of ['gif','webp','mp4']){const [r]=valid(await run(service,'apng',[apng],{format}));if(format==='webp')assert.ok((await sharp(r.output,{animated:true}).metadata()).pages>=2);else await encode(['-i',r.output,'-f','null','-'],root);}
+ const disguised=path.join(root,'animated.png');await fs.copyFile(apng,disguised);assert.match((await run(service,'modern',[disguised],{format:'webp'}))[0].error,/APNG Converter/);
  const [animatedSprite]=valid(await run(service,'sprite',[apng],{columns:2}));assert.match(animatedSprite.details,/3 frames/);
 });
 test('tool capabilities reject forged selections, unsupported options and external Lottie assets',async t=>{

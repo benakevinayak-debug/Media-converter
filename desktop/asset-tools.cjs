@@ -21,6 +21,7 @@ const TOOLS = {
  batch:{extensions:[...IMAGE,'svg'],formats:['original','webp','avif']}
 };
 const natural=(a,b)=>a.localeCompare(b,'en',{numeric:true,sensitivity:'base'});
+function isAPNG(bytes){if(bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')return false;for(let offset=8;offset+12<=bytes.length;){const length=bytes.readUInt32BE(offset);if(bytes.toString('ascii',offset+4,offset+8)==='acTL')return true;offset+=length+12;}return false;}
 function number(value, fallback, min, max) { const n=value===undefined?fallback:Number(value);if(!Number.isFinite(n)||n<min||n>max)throw Error(`Choose a value between ${min} and ${max}.`);return n; }
 function options(tool, input={}) {
  if(!TOOLS[tool])throw Error('Unknown tool.');
@@ -85,6 +86,7 @@ class AssetTools {
    const result=optimize(bytes.toString('utf8'),{multipass:true,plugins:['removeComments','removeMetadata','removeXMLProcInst','removeDoctype']});
    const output=Buffer.from(result.data);return {ext:'svg',bytes:output.length<bytes.length?output:bytes};
   }
+  if(isAPNG(bytes))throw Error('Use APNG Converter for animated PNG files to preserve all frames.');
   const image=sharp(bytes,{animated:true,limitInputPixels:160000000});const m=await image.metadata();
   if((m.pages||1)>300)throw Error('Use animations with no more than 300 frames.');
   const target=o.format==='original'?ext:o.format;
@@ -120,7 +122,7 @@ class AssetTools {
    }else{
     if(items.some(item=>!/\.png$/i.test(item.path)))throw Error('For multiple frames, choose PNG files only.');
     const ordered=[...items].sort((a,b)=>natural(a.path,b.path));if(ordered.length>300)throw Error('Use up to 300 frames.');
-    for(let i=0;i<ordered.length;i++)await fs.copyFile(ordered[i].path,path.join(frames,`frame-${String(i+1).padStart(6,'0')}.png`));
+    for(let i=0;i<ordered.length;i++){if(isAPNG(await fs.readFile(ordered[i].path)))throw Error('PNG sequences require still PNG frames. Use APNG Converter for animated PNG files.');await fs.copyFile(ordered[i].path,path.join(frames,`frame-${String(i+1).padStart(6,'0')}.png`));}
    }
    const names=(await fs.readdir(frames)).sort(natural);if(!names.length)throw Error('No animation frames found.');if(names.length>300)throw Error('Use animations with no more than 300 frames.');
    if(tool==='sprite'){
