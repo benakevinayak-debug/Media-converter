@@ -1,15 +1,14 @@
-# MediaConvert 1.2.0
+# MediaConvert 1.3.0
 
 Created by **Vinayak Benake** · Support: **Benakevinayak@gmail.com**
 
-A private Windows video/audio converter with a peach-and-coral interface, an
-original media-factory illustration, light and
+A private Windows video/audio converter with a dark purple workspace with a sidebar and live conversion queue, light and
 dark themes, folder importing, a conversion queue, and local output saving.
 The FFmpeg WebAssembly engine is bundled, so conversion works offline.
 
 ## Install the Windows app
 
-Extract the final ZIP and run `MediaConvert-Setup-1.2.0-x64.exe`. The setup is an
+Extract the final ZIP and run `MediaConvert-Setup-1.3.0-x64.exe`. The setup is an
 unsigned, standalone x64 Windows installer. It installs for the current user,
 creates shortcuts, adds Explorer file/folder menu entries, and supplies an
 uninstaller. Close MediaConvert before installing or uninstalling. Requires
@@ -75,3 +74,15 @@ Windows tests still required.
 
 `index (1).html` and the existing work tracker in `index.html` are preserved from
 the original repository and are not used as the desktop entry point.
+
+## Desktop 1.3 workspace
+
+Search and filter the queue, select individual files, override output formats per
+row, use quick Tools presets, or stop a batch after its current file finishes.
+Auto quality uses the Balanced preset. Originals are always kept. History shows
+completed entries in the current queue and clears with that queue. The optional
+Open folder setting reveals the last saved result after a batch finishes.
+
+Generate the self-contained HTML design preview with
+`node scripts/create-browser-preview.cjs`. It supports the interface and local
+file selection; conversion is explicitly disabled in the browser preview.
