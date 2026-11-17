@@ -25,7 +25,7 @@ function open(tool){
  active=tool;selection=[];$('asset-tool-grid').hidden=true;$('asset-detail').hidden=false;$('asset-title').textContent=tool.name;$('asset-description').textContent=tool.note;
  $('asset-results').replaceChildren();$('asset-selection').replaceChildren();$('asset-status').textContent='Choose source files to begin.';$('asset-format').replaceChildren();
  for(const value of tool.formats){const opt=document.createElement('option');opt.value=value;opt.textContent=value==='original'?'Keep original format':value==='png'&&tool.id==='lottie'?'PNG image sequence':value.toUpperCase();$('asset-format').appendChild(opt)}
- for(const [key,input] of Object.entries(inputs))input.closest('label').hidden=!(tool.fields||[]).includes(key);
+ for(const [key,input] of Object.entries(inputs)){input.value=input.defaultValue;input.closest('label').hidden=!(tool.fields||[]).includes(key);input.disabled=!(tool.fields||[]).includes(key);}
  $('asset-folder').hidden=!tool.folder;update();$('asset-title').focus();
 }
 $('asset-back').onclick=()=>{if(running)return;active=null;selection=[];$('asset-detail').hidden=true;$('asset-tool-grid').hidden=false;};
@@ -39,7 +39,7 @@ async function choose(folder){
 $('asset-choose').onclick=()=>choose(false);$('asset-folder').onclick=()=>choose(true);
 $('asset-run').onclick=async()=>{
  if(running||busy||preview||!selection.length)return;
- const o={format:$('asset-format').value};for(const [key,input] of Object.entries(inputs))o[key]=Number(input.value);
+ const o={format:$('asset-format').value};for(const [key,input] of Object.entries(inputs))if((active.fields||[]).includes(key))o[key]=Number(input.value);
  if(!$('asset-options').reportValidity())return;
  running=true;window.assetToolBusy=true;update();updateTotals();$('asset-results').replaceChildren();$('asset-status').textContent='Processing locally…';
  try{const results=await window.desktop.runTool(active.id,selection.map(f=>f.id),o);
