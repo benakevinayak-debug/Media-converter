@@ -1,0 +1,22 @@
+name: Build pinned JPEG engine
+description: Compile the static libjpeg-turbo 3.2.1 Windows entropy optimizer.
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: libjpeg-turbo/libjpeg-turbo
+        ref: 7b4993786d856cbccabfc0ed2f923ba000e326cc
+        path: _native-src
+        persist-credentials: false
+    - name: Build pinned libjpeg-turbo 3.2.1 lossless JPEG engine
+      shell: pwsh
+      run: |
+        cmake -S _native-src -B _native-build -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DWITH_TURBOJPEG=OFF -DWITH_SIMD=OFF -DWITH_CRT_DLL=OFF
+        if ($LASTEXITCODE -ne 0) { throw 'JPEG engine configuration failed.' }
+        cmake --build _native-build --config Release --target jpegtran-static --parallel 4
+        if ($LASTEXITCODE -ne 0) { throw 'JPEG engine build failed.' }
+        New-Item -ItemType Directory -Force build/native | Out-Null
+        Copy-Item _native-build/Release/jpegtran-static.exe build/native/jpegtran.exe
+        Copy-Item _native-src/LICENSE.md build/native/libjpeg-turbo-LICENSE.md
+        Copy-Item _native-src/README.ijg build/native/libjpeg-README.ijg

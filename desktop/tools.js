@@ -16,7 +16,7 @@ const grid=$('asset-tool-grid');
 for(const tool of catalog){const b=document.createElement('button');b.className='asset-tool-card';b.innerHTML=icon(tool.icon)+'<strong></strong><span></span>';b.querySelector('strong').textContent=tool.name;b.querySelector('span').textContent=tool.description;b.onclick=()=>open(tool);grid.appendChild(b)}
 const inputs={quality:$('asset-quality'),colors:$('asset-colors'),width:$('asset-width'),height:$('asset-height'),fps:$('asset-fps'),duration:$('asset-duration'),columns:$('asset-columns')};
 function update(){
- const blocked=running||busy;$('asset-choose').disabled=blocked;$('asset-folder').disabled=blocked;$('asset-run').disabled=blocked||!selection.length||preview;$('asset-options').disabled=blocked;$('asset-back').disabled=running;
+ const blocked=running||busy||window.imageCompressionBusy;$('asset-choose').disabled=blocked;$('asset-folder').disabled=blocked;$('asset-run').disabled=blocked||!selection.length||preview;$('asset-options').disabled=blocked;$('asset-back').disabled=running;
  document.querySelectorAll('.asset-tool-card').forEach(b=>b.disabled=running);
  $('asset-selection-count').textContent=`${selection.length} ${selection.length===1?'file':'files'} selected`;
  $('asset-run').textContent=preview?'Windows app required':running?'Processing…':'Run '+(active?.name||'tool');
@@ -38,7 +38,7 @@ async function choose(folder){
 }
 $('asset-choose').onclick=()=>choose(false);$('asset-folder').onclick=()=>choose(true);
 $('asset-run').onclick=async()=>{
- if(running||busy||preview||!selection.length)return;
+ if(running||busy||window.imageCompressionBusy||preview||!selection.length)return;
  const o={format:$('asset-format').value};for(const [key,input] of Object.entries(inputs))if((active.fields||[]).includes(key))o[key]=Number(input.value);
  if(!$('asset-options').reportValidity())return;
  running=true;window.assetToolBusy=true;update();updateTotals();$('asset-results').replaceChildren();$('asset-status').textContent='Processing locally…';

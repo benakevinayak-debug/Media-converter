@@ -2,7 +2,7 @@ name: Build Windows installer
 on:
   workflow_dispatch:
   push:
-    branches: [codex/windows-desktop-1.2, codex/desktop-purple-1.3, codex/windows-settings-1.3.2]
+    branches: [codex/windows-desktop-1.2, codex/desktop-purple-1.3, codex/windows-settings-1.3.2, codex/image-compression-1.5.0]
 permissions:
   contents: read
 jobs:
@@ -15,6 +15,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build-jpeg
       - run: npm test
       - run: npm run test:render
       - run: node scripts/capture-asset-notices.cjs
@@ -23,8 +24,13 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       - name: Verify packaged asset dependencies
         run: node scripts/verify-packaged.cjs
+      - name: Verify image compression inside the packaged Windows app
+        run: node scripts/test-packaged-compression.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: MediaConvert-Windows-installer
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/image-compression-checks.json
+            dist/image-compression.png
           if-no-files-found: error

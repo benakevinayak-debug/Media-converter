@@ -33,6 +33,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build-jpeg
       - run: npm test
       - name: Configure reserved identity
         if: github.event_name == 'workflow_dispatch'

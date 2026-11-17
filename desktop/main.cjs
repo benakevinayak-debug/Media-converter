@@ -2,12 +2,14 @@ const { app, BrowserWindow, protocol, net, ipcMain, dialog, shell, session } = r
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { storeDisplayName = 'MediaConvert' } = require('../package.json');
-const displayName = process.windowsStore ? storeDisplayName : 'MediaConvert';
+const displayName = storeDisplayName;
 const { MediaFiles } = require('./files.cjs');
 const media = new MediaFiles();
 const { AssetTools, TOOLS } = require('./asset-tools.cjs');
 const { createDocumentRenderer } = require('./render-document.cjs');
 let assets;
+const { ImageCompression, EXTENSIONS } = require('./compression.cjs');
+let compression;
 let mainWindow;
 const commandPaths = argv => {
   const index = argv.indexOf('--convert');
@@ -46,9 +48,10 @@ function createWindow() {
   });
   window.on('closed', () => { mainWindow = null; });
   window.loadURL('app://desktop/index.html');
+  return window;
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (!primaryInstance) return;
   function handle(channel, callback) {
     ipcMain.handle(channel, (event, ...args) => {
@@ -57,6 +60,22 @@ app.whenReady().then(() => {
     });
   }
   assets = new AssetTools({render:createDocumentRenderer({BrowserWindow,session})});
+  compression = new ImageCompression({progress:item=>mainWindow?.webContents.send('compression:progress',item)});
+  handle('compression:choose', async folder => {
+    const result=await dialog.showOpenDialog(mainWindow,{title:'Add images for compression',properties:folder?['openDirectory']:['openFile','multiSelections'],filters:folder?[]:[{name:'Supported images',extensions:EXTENSIONS}]});
+    if(result.canceled)return {files:[],warnings:[],canceled:true};return compression.collect(result.filePaths);
+  });
+  handle('compression:drop', paths=>compression.collect(paths));
+  handle('compression:run', (ids,mode)=>compression.run(ids,mode));
+  handle('compression:clear', ()=>compression.clear());
+  handle('compression:save', async id=>{
+    const item=compression.ready(id),result=await dialog.showSaveDialog(mainWindow,{title:'Save compressed image',defaultPath:await compression.suggested(id),filters:[{name:'Original image format',extensions:[require('node:path').extname(item.name).slice(1)]}]});
+    if(result.canceled)return {canceled:true};return {path:await compression.save(id,result.filePath)};
+  });
+  handle('compression:zip', async ids=>{
+    const result=await dialog.showSaveDialog(mainWindow,{title:'Save compressed images as ZIP',defaultPath:'QuickConvert-compressed-images.zip',filters:[{name:'ZIP archive',extensions:['zip']}]});
+    if(result.canceled)return {canceled:true};return {path:await compression.zip(ids,result.filePath)};
+  });
   handle('tools:choose', async (tool, folder=false) => {
     if(!TOOLS[tool] || (folder && tool!=='batch'))throw Error('Unknown tool selection.');
     const result=await dialog.showOpenDialog(mainWindow,{title:'Choose assets',properties:folder?['openDirectory']:['openFile','multiSelections'],filters:folder?[]:[{name:'Supported assets',extensions:TOOLS[tool].extensions}]});
@@ -94,14 +113,25 @@ app.whenReady().then(() => {
       if (!vendors[vendor]) return new Response('Not found', { status: 404 });
       root = path.join(__dirname, '../node_modules', vendors[vendor], 'dist/umd');
       resource = parts.join('/');
-    } else if (!['index.html', 'renderer.js', 'tools.js', 'styles.css', 'hero.png'].includes(relative)) {
+    } else if (!['index.html', 'renderer.js', 'tools.js', 'compression.js', 'styles.css', 'hero.png'].includes(relative)) {
       return new Response('Not found', { status: 404 });
     }
     const file = path.resolve(root, resource);
     if (!file.startsWith(path.resolve(root) + path.sep)) return new Response('Forbidden', { status: 403 });
     return net.fetch(pathToFileURL(file).href);
   });
-  createWindow();
+  const window=createWindow();
+  if(process.argv.includes('--verify-image-compression')&&process.env.QUICKCONVERT_COMPRESSION_REPORT){
+    try{
+      await new Promise(resolve=>window.webContents.once('did-finish-load',resolve));
+      await require('./compression-checks.cjs').verifyPackagedCompression({compression,window,reportPath:process.env.QUICKCONVERT_COMPRESSION_REPORT,app});
+      await compression.dispose();app.exit(0);
+    }catch(error){await require('node:fs/promises').writeFile(process.env.QUICKCONVERT_COMPRESSION_REPORT,JSON.stringify({error:error.stack}));app.exit(1);}
+    return;
+  }
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+
+let compressionCleaned=false;
+app.on('before-quit',event=>{if(compression&&!compressionCleaned){event.preventDefault();compression.dispose().finally(()=>{compressionCleaned=true;app.quit()})}});

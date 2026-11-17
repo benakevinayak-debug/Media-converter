@@ -59,3 +59,9 @@ Sources and build recipes:
 - https://github.com/eugeneware/ffmpeg-static/releases/tag/b6.1.1
 
 These notices and source links do not replace complete corresponding-source, relinking or other obligations for the exact GPL/LGPL binaries. The publisher must review and satisfy these before public distribution; the Store license-review check remains pending.
+
+## Dedicated image compression (Windows 1.5)
+
+JXL decoding uses jxl-oxide-wasm 0.12.6 (MIT OR Apache-2.0), with its license texts included. JXL compression changes only compressible metadata boxes; image codestreams remain unchanged. ZIP exports use yazl (MIT). The Windows lossless JPEG engine is compiled statically from libjpeg-turbo 3.2.1, commit `7b4993786d856cbccabfc0ed2f923ba000e326cc`, with its license and IJG notices included under `resources/native` and the bundled dependency notices. Sources/build instructions: https://github.com/libjpeg-turbo/libjpeg-turbo/tree/7b4993786d856cbccabfc0ed2f923ba000e326cc and `.github/workflows/windows.yml`. Source/build options must stay available for this exact engine.
+
+The unmodified animated JXL verification fixture is by the libjxl/testdata contributors, CC BY 4.0: https://github.com/libjxl/testdata/blob/main/jxl/blending/cropped_traffic_light.jxl . Its attribution and license are bundled. The fixture is for verification, with no endorsement implied. Other compression fixtures are generated procedurally in this repository. jSquash/JPEGtran-bin are development dependencies used only for fixture regeneration/local development; the installed Windows app uses the pinned native JPEG engine and jxl-oxide decoder.

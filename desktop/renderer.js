@@ -33,7 +33,7 @@ function updateTotals(){
  $('session-detail').textContent=c.all?`${c.completed} of ${c.all} completed`:'Your files stay on your device';
  const progress=c.all?c.completed/c.all*100:0;$('session-progress').style.width=progress+'%';$('session-progress').parentElement.setAttribute('aria-valuenow',String(Math.round(progress)));
  $('queue-summary').textContent=`${c.all} ${c.all===1?'file':'files'} · ${selected} selected`;
- $('go').disabled=busy||window.assetToolBusy||!selected||preview;
+ $('go').disabled=busy||window.assetToolBusy||window.imageCompressionBusy||!selected||preview;
  $('go-label').textContent=preview?'Windows app required':busy?'Converting…':selected?`Convert ${selected} ${selected===1?'File':'Files'}`:c.all?'Select files to convert':'Add files to begin';
  $('clear').disabled=busy||!files.length;$('stop').hidden=!busy;$('stop').disabled=stopAfterFile;
  const pending=files.filter(f=>!f.done);$('select-all').disabled=busy||!pending.length;$('select-all').checked=!!pending.length&&pending.every(f=>f.selected);$('select-all').indeterminate=pending.some(f=>f.selected)&&!pending.every(f=>f.selected);
@@ -80,7 +80,7 @@ function setSt(f,text,cls=''){f.status=text;f.cls=cls;statusView(f)}
 function setBar(f,value){f.p=Math.max(0,Math.min(1,Number.isFinite(value)?value:0));if(!f.el)return;const bar=f.el.querySelector('.bar');if(bar){bar.querySelector('i').style.width=f.p*100+'%';bar.setAttribute('aria-valuenow',String(Math.round(f.p*100)));f.el.querySelector('.percent').textContent=Math.round(f.p*100)+'%'}}
 function reveal(f){window.desktop.reveal(f.file.id).catch(error=>{$('msg').textContent=error.message})}
 function setFilter(value){filter=value;document.querySelectorAll('[data-filter]').forEach(b=>{const active=b.dataset.filter===value;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});render()}
-function activateNav(id){$('converter').hidden=['settings','tools'].includes(id);$('settings-page').hidden=id!=='settings';$('tools-page').hidden=id!=='tools';window.refreshAssetTools?.();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.id===id));$('queue-title').firstChild.textContent=id==='history'?'History ':'Queue '}
+function activateNav(id){$('converter').hidden=['settings','tools','nav-image-compression'].includes(id);$('compression-page').hidden=id!=='nav-image-compression';window.compressionPageOpen=id==='nav-image-compression';$('search').placeholder=window.compressionPageOpen?'Search images…':'Search queued files or formats…';$('search').value=window.compressionPageOpen?'':query;if(window.compressionPageOpen)window.searchCompressedImages?.('');$('settings-page').hidden=id!=='settings';$('tools-page').hidden=id!=='tools';window.refreshAssetTools?.();document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.id===id));$('queue-title').firstChild.textContent=id==='history'?'History ':'Queue '}
 function setFormat(value){
  if(busy||!FORMATS.includes(value))return;fmt=value;$('format').value=value;files.filter(f=>!f.done).forEach(f=>f.ext=value);
  const category=AUD.includes(value)?'audio':value==='gif'?'gif':'video';
@@ -104,13 +104,13 @@ $('format').onchange=()=>setFormat($('format').value);
 document.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>setFormat(b.dataset.category==='audio'?'mp3':b.dataset.category==='gif'?'gif':'mp4'));
 $('quals').onclick=event=>{const b=event.target.closest('[data-q]');if(b)setQuality(b.dataset.q)};
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{activateNav('nav-convert');setFilter(b.dataset.filter)});
-$('search').oninput=()=>{query=$('search').value.trim().toLowerCase();render()};
+$('search').oninput=()=>{if(window.compressionPageOpen){window.searchCompressedImages?.($('search').value);return;}query=$('search').value.trim().toLowerCase();render()};
 $('select-all').onchange=()=>{if(!busy){files.filter(f=>!f.done).forEach(f=>f.selected=$('select-all').checked);render()}};
 $('add-files').onclick=()=>importSelection(()=>window.desktop.chooseFiles());
 $('folder').onclick=()=>importSelection(()=>window.desktop.chooseFolder());
-['dragover','dragenter'].forEach(type=>document.addEventListener(type,event=>{event.preventDefault();$('drop').classList.add('over')}));
-['dragleave','drop'].forEach(type=>document.addEventListener(type,event=>{event.preventDefault();$('drop').classList.remove('over')}));
-document.addEventListener('drop',event=>{const incoming=Array.from(event.dataTransfer.files);importSelection(()=>window.desktop.importDrop(incoming))});
+['dragover','dragenter'].forEach(type=>document.addEventListener(type,event=>{event.preventDefault();$(window.compressionPageOpen?'image-drop':'drop').classList.add('over')}));
+['dragleave','drop'].forEach(type=>document.addEventListener(type,event=>{event.preventDefault();$(window.compressionPageOpen?'image-drop':'drop').classList.remove('over')}));
+document.addEventListener('drop',event=>{const incoming=Array.from(event.dataTransfer.files);if(window.compressionPageOpen){window.importCompressionDrop?.(incoming);return;}importSelection(()=>window.desktop.importDrop(incoming))});
 $('clear').onclick=()=>{if(!busy){files=[];render();$('msg').textContent='Queue cleared. Saved files remain in their original folders.'}};
 $('stop').onclick=()=>{stopAfterFile=true;$('stop').disabled=true;$('msg').textContent='The current file will finish; remaining files will stay queued.'};
 window.desktop.onSelection(()=>importSelection(()=>window.desktop.pending(),true));
@@ -164,7 +164,7 @@ async function run(inName,outName,a){logBuf.length=0;let code;
 
 function showError(){ $('diagnostics').hidden=false;$('diagnostics').open=true; }
 $('go').onclick=async()=>{
- if(busy||window.assetToolBusy||preview)return;const batch=selectedFiles();if(!batch.length)return;
+ if(busy||window.assetToolBusy||window.imageCompressionBusy||preview)return;const batch=selectedFiles();if(!batch.length)return;
  busy=true;stopAfterFile=false;const q=qual==='auto'?'medium':qual,fast=$('fast').checked,open=$('open-folder').checked;let succeeded=0,failed=0,lastSaved=null;
  // Snapshot per-file choices so new imports wait for the next batch.
  const jobs=batch.map(f=>({f,ext:f.ext||fmt}));render();
@@ -197,6 +197,7 @@ $('privacy').onclick=()=>showModal('privacy-modal');
 $('tools').onclick=()=>{activateNav('tools');$('tools-page-title').focus()};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 $('nav-convert').onclick=()=>{activateNav('nav-convert');setFilter('all');$('add-files').focus()};
+$('nav-image-compression').onclick=()=>{activateNav('nav-image-compression');$('image-page-title').focus();window.refreshCompression?.()};
 $('nav-files').onclick=()=>{activateNav('nav-files');setFilter('all');$('queue-title').scrollIntoView({block:'nearest',behavior:'smooth'})};
 $('history').onclick=()=>{activateNav('history');query='';$('search').value='';setFilter('completed');$('queue-title').scrollIntoView({block:'nearest',behavior:'smooth'});$('msg').textContent='History shows completed files in the current queue. Saved files remain on disk after the queue is cleared.'};
 $('settings').onclick=()=>{fillPreferences();activateNav('settings');$('preferences-title').focus()};
