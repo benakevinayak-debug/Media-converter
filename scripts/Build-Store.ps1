@@ -49,6 +49,8 @@ QuickConvert Media - Microsoft Store upload
 This is an unsigned x64 Store package. Microsoft signs accepted Store packages.
 It is not a double-click installer for local testing without a trusted test certificate.
 MakeAppx validation and exact packaged identity checks passed during this build.
+The CI artifact also includes image-compression-checks.json and a screenshot.
+The image checks run the application extracted from the finished MSIX; they do not install/register the MSIX or replace Store certification.
 Windows installation tests, Windows App Certification Kit, accessibility and GPL corresponding-source/license review remain pending.
 Creator: Vinayak Benake
 Support: Benakevinayak@gmail.com
